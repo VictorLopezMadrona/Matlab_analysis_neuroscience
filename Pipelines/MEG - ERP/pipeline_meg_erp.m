@@ -56,26 +56,41 @@ save([cnfg.outpath 'Configuration_file'],'cnfg')
 
 %% LOAD RAW-DATA
 
-freq_filt = cnfg.bpfreq;
-
-cfg=[];
-cfg.dataset = cnfg.dataset;
-cfg.channel = cnfg.chtype;
-cfg.bpfilter = 'yes'; 
-cfg.bpfilttype = 'firws';
-cfg.bpfreq = freq_filt;
-cfg.bsfilter = 'yes'; 
-cfg.bsfreq = [49.5 50.5];
-ftdata = ft_preprocessing(cfg);
-
+%% Load data
 cfg=[];
 cfg.dataset = cnfg.dataset;
 cfg.trialdef.eventvalue = cnfg.eventvalue;
 cfg.trialdef.eventtype = cnfg.eventtype;
+cfg.channel = cnfg.chtype;
 cfg.trialdef.prestim = cnfg.prestim; % in seconds
 cfg.trialdef.poststim = cnfg.poststim; % in seconds
 cfg = ft_definetrial(cfg);
-ftdata = ft_redefinetrial(cfg,ftdata);
+
+cfg.bpfreq    = cnfg.bpfreq;
+cfg.dftfreq   = [50 100 150];
+cfg.bpfilter  = 'yes';
+cfg.dftfilter = 'yes';
+ftdata = ft_preprocessing(cfg);
+
+% freq_filt = cnfg.bpfreq;
+% cfg=[];
+% cfg.dataset = cnfg.dataset;
+% cfg.channel = cnfg.chtype;
+% cfg.bpfilter = 'yes'; 
+% cfg.bpfilttype = 'firws';
+% cfg.bpfreq = freq_filt;
+% cfg.bsfilter = 'yes'; 
+% cfg.bsfreq = [49.5 50.5];
+% ftdata = ft_preprocessing(cfg);
+% 
+% cfg=[];
+% cfg.dataset = cnfg.dataset;
+% cfg.trialdef.eventvalue = cnfg.eventvalue;
+% cfg.trialdef.eventtype = cnfg.eventtype;
+% cfg.trialdef.prestim = cnfg.prestim; % in seconds
+% cfg.trialdef.poststim = cnfg.poststim; % in seconds
+% cfg = ft_definetrial(cfg);
+% ftdata = ft_redefinetrial(cfg,ftdata);
 
 
 % Remove bad channels marked in anywave
