@@ -117,6 +117,7 @@ end
 % If ICA file, obtain ICA components
 if isfield(cnfg,'ICname')
     cnfg.computeICA = false;
+    src_ica = load(cnfg.ICname);
     ftdata = data2ICA(cnfg,ftdata); % Load IC data
 end
 
