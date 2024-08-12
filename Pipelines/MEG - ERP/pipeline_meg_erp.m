@@ -28,9 +28,10 @@ function [ftdata]=pipeline_meg_erp(cnfg_path)
 
 % Author: Victor Lopez Madrona <v.lopez.madrona@gmail.com>
 % License: BSD (3-clause)
-% Aug. 2021; Last revision: 28-Oct-2021
+% Aug. 2021; Last revision: 12-Aug-2024
 
 % Change log:
+% 12/08/2024: Correct filtering
 % 28/10/2021: Compute ICA  
 % 13/08/2021: Included time-frequency analysis and ITPC
 
@@ -52,24 +53,29 @@ if ~exist(cnfg.outpath,'dir'), mkdir(cnfg.outpath); end
 save([cnfg.outpath 'Configuration_file'],'cnfg')
 
 %% Load data
+
+%% LOAD RAW-DATA
+
+freq_filt = cnfg.bpfreq;
+
 cfg=[];
 cfg.dataset = cnfg.dataset;
+cfg.channel = cnfg.chtype;
+cfg.bpfilter = 'yes'; 
+cfg.bpfilttype = 'firws';
+cfg.bpfreq = freq_filt;
+cfg.bsfilter = 'yes'; 
+cfg.bsfreq = [49.5 50.5];
+ftdata = ft_preprocessing(cfg);
+
+cfg=[];
+cfg.dataset = filename;
 cfg.trialdef.eventvalue = cnfg.eventvalue;
 cfg.trialdef.eventtype = cnfg.eventtype;
-cfg.channel = cnfg.chtype;
 cfg.trialdef.prestim = cnfg.prestim; % in seconds
 cfg.trialdef.poststim = cnfg.poststim; % in seconds
-cfg = ft_definetrial(cfg);
+ftdata = ft_redefinetrial(cfg,ftdata);
 
-cfg.bpfreq    = cnfg.bpfreq;
-cfg.hpfreq    = cnfg.bpfreq(1);
-cfg.lpfreq    = cnfg.bpfreq(2);
-cfg.bsfreq    = [49 51];
-cfg.dftfreq   = [50 100 150];
-cfg.bpfilter  = 'yes';
-cfg.dftfilter = 'yes';
-cfg.bsfilter  = 'yes';
-ftdata = ft_preprocessing(cfg);
 
 % Remove bad channels marked in anywave
 [data_path,data_name,~] = fileparts(cnfg.dataset);
