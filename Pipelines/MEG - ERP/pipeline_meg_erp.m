@@ -69,7 +69,7 @@ cfg.bsfreq = [49.5 50.5];
 ftdata = ft_preprocessing(cfg);
 
 cfg=[];
-cfg.dataset = filename;
+cfg.dataset = cnfg.dataset;
 cfg.trialdef.eventvalue = cnfg.eventvalue;
 cfg.trialdef.eventtype = cnfg.eventtype;
 cfg.trialdef.prestim = cnfg.prestim; % in seconds
