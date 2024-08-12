@@ -66,10 +66,16 @@ cfg.trialdef.prestim = cnfg.prestim; % in seconds
 cfg.trialdef.poststim = cnfg.poststim; % in seconds
 cfg = ft_definetrial(cfg);
 
-cfg.bpfreq    = cnfg.bpfreq;
 cfg.dftfreq   = [50 100 150];
-cfg.bpfilter  = 'yes';
 cfg.dftfilter = 'yes';
+if cnfg.bpfreq(1)>0
+    cfg.hptfreq   = cnfg.bpfreq(1);
+    cfg.hpfilter  = 'yes';
+end
+if cnfg.bpfreq(2)>0
+    cfg.lptfreq   = cnfg.bpfreq(2);
+    cfg.lpfilter  = 'yes';
+end
 ftdata = ft_preprocessing(cfg);
 
 % freq_filt = cnfg.bpfreq;
