@@ -175,7 +175,41 @@ if cnfg.computeICA
 
 end
 
-%% 2- COMPONENTS WITH A SIGNIFICANT RESPONSE
+%% 2- TOPOGRAPHY 
+
+outpath=[cnfg.outpath 'IC_topo\'];
+if ~exist(outpath,'dir')
+    mkdir(outpath)
+end
+if isfield(src_ica,'labels') % ICA from fieldtrip or from Anywave
+    src_out.fsample = src_ica.sr;
+    src_out.time = [];
+    src_out.trial = [];
+    src_out.topo = src_ica.mixing;
+    src_out.unmixing = src_ica.unmixing;
+    src_out.label = [];
+    src_out.topolabel = src_ica.labels;
+    src_out.grad = [];
+    src_out.trialinfo = [];
+    src_out.cfg = [];
+    src_ica = src_out;
+end
+for nic=1:size(src_ica.topo,2)
+    cfg=[];
+    cfg.component = nic;
+    if ~isfield(cnfg,'layout')
+        cfg.layout = '4D248_helmet';
+    else
+        cfg.layout = cnfg.layout;
+    end
+    h=figure; ft_topoplotIC(cfg,src_ica); colorbar
+    savefig(h,[outpath 'IC_' num2str(nic)])
+    saveas(h,[outpath 'IC_' num2str(nic) '.png'])
+    close(h);
+end
+
+
+%% 3- COMPONENTS WITH A SIGNIFICANT RESPONSE
 
 if ~isfield(cnfg,'signtrig'), cnfg.signtrig=false; end
 if cnfg.signtrig
@@ -190,7 +224,7 @@ if cnfg.signtrig
     evok_resp = find_sign_trig(cfg,ftdata);
 end
 
-%% 3- DIFFERENCES BETWEEN TRIGGERS
+%% 4- DIFFERENCES BETWEEN TRIGGERS
 
 if ~isfield(cnfg,'signcmp'), cnfg.signcmp=false; end
 if cnfg.signcmp
@@ -210,7 +244,7 @@ if cnfg.signcmp
     end
 end
  
-%% 4- Plot ERPs
+%% 5- Plot ERPs
 
 if ~isfield(cnfg,'ploterp'), cnfg.ploterp=false; end
 if cnfg.ploterp
@@ -228,7 +262,7 @@ if cnfg.ploterp
     
 end
 
-%% 5- Time-Frequency Analysis (and ITPC)
+%% 6- Time-Frequency Analysis (and ITPC)
 
 if ~isfield(cnfg,'tf'), cnfg.tf=false; end
 if cnfg.tf
@@ -251,7 +285,7 @@ if cnfg.tf
     end
 end
 
-%% 6- Cross-Frequency Coupling
+%% 7- Cross-Frequency Coupling
 
 if ~isfield(cnfg,'CFC'), cnfg.CFC=false; end
 if cnfg.CFC
@@ -280,7 +314,7 @@ if cnfg.CFC
     end
 end
 
-%% 7- POWER SPECTRUM
+%% 8- POWER SPECTRUM
 
 if ~isfield(cnfg,'PS'), cnfg.PS=false; end
 if cnfg.PS
