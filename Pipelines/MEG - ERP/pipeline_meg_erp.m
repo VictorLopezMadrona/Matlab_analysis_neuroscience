@@ -74,6 +74,7 @@ cfg.trialdef.eventvalue = cnfg.eventvalue;
 cfg.trialdef.eventtype = cnfg.eventtype;
 cfg.trialdef.prestim = cnfg.prestim; % in seconds
 cfg.trialdef.poststim = cnfg.poststim; % in seconds
+cfg = ft_definetrial(cfg);
 ftdata = ft_redefinetrial(cfg,ftdata);
 
 
