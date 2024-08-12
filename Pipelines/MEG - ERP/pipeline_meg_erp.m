@@ -98,7 +98,7 @@ if isfield(cnfg,'ICname')
     ftdata = data2ICA(cnfg,ftdata); % Load IC data
 end
 
-% Remove artefacts selected in AnyWave
+% Remove artefacts selected in AnyWave. Labeled as 'artefact' or 'artifact'
 [filepath,name,~] = fileparts(cnfg.dataset);
 cfg=[];
 cfg.filename = [filepath '\' name, '.mrk'];
