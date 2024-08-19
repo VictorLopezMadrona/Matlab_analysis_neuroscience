@@ -47,6 +47,7 @@ function evok_resp=find_sign_trig(cnfg,ftdata)
 % Nov. 2019; Last revision: 13-Dec-2019
 
 % Change_log:
+% 19/08/2024: Added p-value as output
 % 10/08/2021: Add option to plot the response in the contourplot
 %
 
@@ -127,7 +128,7 @@ for ev=1:length(eventvalue)
     cfg.time            = ftdata.time;
     cfg.stats           = cnfg.stats;
     cfg.totalminsamples = cnfg.totalminsamples;
-    [signif_comp_idx, tt, t_signif]=aw_signif_comps2(cfg, data_aw);
+    [signif_comp_idx, tt, t_signif, pval]=aw_signif_comps2(cfg, data_aw);
    
     if isempty(signif_comp_idx)
         warning('No significant responses were found')
@@ -167,6 +168,7 @@ for ev=1:length(eventvalue)
     evok_resp.t_signif{ev} = t_signif;
     evok_resp.data_mean{ev} = data_mean;
     evok_resp.tt{ev} = tt;
+    evok_resp.pval{ev} = pval;
 end
 evok_resp.cnfg = cnfg;
 if cnfg.dosave

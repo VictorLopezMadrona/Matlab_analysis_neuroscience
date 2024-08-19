@@ -16,6 +16,9 @@ function [varargout] = aw_signif_comps2(cnfg, AnyWaveData)
 %    [I, statsum, t_signif] = dyn_signif_comps(cnfg, AnyWaveData) also
 %       returns the statistical outcome for each component and its samples.
 %
+%    [I, statsum, t_signif, pval] = dyn_signif_comps(cnfg, AnyWaveData) also
+%       returns the uncorrected pvalue
+%
 % Inputs:
 %    cnfg - (Optional) structure of parameters:
 %       
@@ -62,6 +65,7 @@ function [varargout] = aw_signif_comps2(cnfg, AnyWaveData)
 % License: BSD (3-clause)
 % Sept. 2019; Last revision: 2-Dec-2019
 
+% 19/08/2024: Added p-val as output
 % 2/12/19: Added option to compare two conditions
 
 nargoutchk(1,3);
@@ -215,7 +219,7 @@ if ~isfield(cnfg,'stats'), cnfg.stats='lfdr'; end
 %end
 
 if nargout > 1
-    varargout = {I, ttestsum, t_signif};
+    varargout = {I, ttestsum, t_signif, p_val};
     varargout = varargout(1:nargout);
 end
 
