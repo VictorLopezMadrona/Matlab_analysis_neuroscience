@@ -43,6 +43,7 @@ function CFD=CFD_ft(cnfg,ftdata)
 % Feb 23; Last revision: 20-Feb-2023
 
 % Change log:
+% 11/09/24 - Corrected '_' in filenames
 % 16/08/23 - Modified to store statistical mask too
 % 20/02/23 - Corrected bug during inter-regional CFD
 
@@ -71,7 +72,13 @@ if isfield(cnfg,'outpath')
         cnfg.outpath = [cnfg.outpath '\'];
     end
 end
-if ~isfield(cnfg,'infosave'), cnfg.infosave=''; end
+if ~isfield(cnfg,'infosave') 
+    cnfg.infosave='';
+else
+    if ~strcmp(cnfg.infosave(1),'_')
+        cnfg.infosave = ['_' cnfg.infosave];
+    end
+end
 
 %% COMPUTE CFD
 
@@ -146,8 +153,8 @@ if cnfg.doplot || cnfg.dosave
     end
     
     if cnfg.dosave
-        savefig(h,[cnfg.outpath 'CFD_' cnfg.infosave ])
-        saveas(h,[cnfg.outpath 'CFD_' cnfg.infosave '.png'])
+        savefig(h,[cnfg.outpath 'CFD' cnfg.infosave ])
+        saveas(h,[cnfg.outpath 'CFD' cnfg.infosave '.png'])
     end
     if ~cnfg.doplot, close(h), end
     
@@ -155,7 +162,7 @@ end
 
 % Save data
 if cnfg.dosave
-    save([cnfg.outpath 'CFDval_' cnfg.infosave],'CFD')
+    save([cnfg.outpath 'CFDval' cnfg.infosave],'CFD')
 end
 
 end

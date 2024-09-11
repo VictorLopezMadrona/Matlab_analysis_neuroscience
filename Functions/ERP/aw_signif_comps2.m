@@ -68,7 +68,7 @@ function [varargout] = aw_signif_comps2(cnfg, AnyWaveData)
 % 19/08/2024: Added p-val as output
 % 2/12/19: Added option to compare two conditions
 
-nargoutchk(1,3);
+nargoutchk(1,4);
 
 % Extract data dimensions
 Nev    = size(AnyWaveData,1);

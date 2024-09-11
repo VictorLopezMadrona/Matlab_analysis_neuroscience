@@ -10,7 +10,11 @@ function plot_timelock_sem(cnfg,timelock)
 % INPUT:
 % cfg.channel;
 % cfg.color;
+% cfg.time; % If data in matrix form
 %
+
+% Log:
+% 03.09.2024: Corrected an error when cfg.time was a column and not a row
 
 if ~isfield(cnfg,'color')
     color=[0.8 0.8 0.8];
@@ -23,7 +27,7 @@ if isstruct(timelock)
     timey = timelock.time; 
 else
     data=timelock;
-    timey=cnfg.time;
+    timey=cnfg.time(:)';
 end
 
 MU = mean(data);

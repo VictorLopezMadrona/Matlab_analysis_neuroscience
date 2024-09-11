@@ -54,6 +54,7 @@ function CFC=comodulogram_ft(cnfg,ftdata)
 % Aug 21; Last revision: 16-Aug-2023
 
 % Change log:
+% 11/09/24 - Corrected '_' in filenames
 % 06/09/23 - Changed pval as double instead of char
 % 16/08/23 - Modified to store statistical mask too
 % 01/06/23 - Included plot_comodulogram stats as parameters
@@ -87,7 +88,13 @@ if isfield(cnfg,'outpath')
         cnfg.outpath = [cnfg.outpath '\'];
     end
 end
-if ~isfield(cnfg,'infosave'), cnfg.infosave=''; end
+if ~isfield(cnfg,'infosave') 
+    cnfg.infosave='';
+else
+    if ~strcmp(cnfg.infosave(1),'_')
+        cnfg.infosave = ['_' cnfg.infosave];
+    end
+end
 
 %% COMPUTE CFC
 
@@ -168,8 +175,8 @@ if cnfg.doplot || cnfg.dosave
     end
     
     if cnfg.dosave
-        savefig(h,[cnfg.outpath 'CFC_' cnfg.infosave ])
-        saveas(h,[cnfg.outpath 'CFC_' cnfg.infosave '.png'])
+        savefig(h,[cnfg.outpath 'CFC' cnfg.infosave ])
+        saveas(h,[cnfg.outpath 'CFC' cnfg.infosave '.png'])
     end
     if ~cnfg.doplot, close(h), end
     
@@ -177,7 +184,7 @@ end
 
 % Save data
 if cnfg.dosave
-    save([cnfg.outpath 'CFCval_' cnfg.infosave],'CFC')
+    save([cnfg.outpath 'CFCval' cnfg.infosave],'CFC')
 end
 
 end
