@@ -37,6 +37,8 @@ curve1 = MU + 1.96*SIGMA/sqrt(size(data,1));
 curve2 = MU - 1.96*SIGMA/sqrt(size(data,1));
 %curve1 = MU + SIGMA/sqrt(size(data,1));
 %curve2 = MU - SIGMA/sqrt(size(data,1));
+%curve1 = MU + SIGMA;
+%curve2 = MU - SIGMA;
 
 ttime = [timey, fliplr(timey)];
 inBetween = [curve1, fliplr(curve2)];
