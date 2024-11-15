@@ -29,6 +29,15 @@ function conc_data = concatenate_fttrials(ftdata)
 % email: christos.papageorgakis@gmail.com
 % Jan. 2019; Last revision: 16-Jan-2019
 
+% CHANGE LOG:
+% 26/09/2024: corrected when trialinfo is string
+
+if isfield(ftdata, 'trialinfo')
+    if iscell(ftdata.trialinfo)
+        ftdata.trialinfo = -1;
+    end
+end
+
 % Make a FieldTrip data template for data with one trials
 cfg = {};
 cfg.trials = 1;

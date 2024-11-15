@@ -240,7 +240,8 @@ if cnfg.dosave
     savefig(h2,[cnfg.outpath 'TRF_freq_log' cnfg.infosave ])
     saveas(h2,[cnfg.outpath 'TRF_freq_log' cnfg.infosave '.png'])
 end
-if ~cnfg.doplot, close(h1), close(h2), end
+%if ~cnfg.doplot, close(h1), close(h2), end
+if ~cnfg.doplot, close(h2), end
 % Save data
 if cnfg.dosave
     save([cnfg.outpath 'TRF_freq' cnfg.infosave],'model','stats_TRF','stats')
