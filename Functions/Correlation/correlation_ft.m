@@ -2,6 +2,8 @@ function [maxcor,del,cor,lag,THpos,THneg]=correlation_ft(cnfg,ftdata)
 
 %% Compute cross-correlation between selected channels in ft structure
 %
+%  Remember: a positive delay means that the second signal preceeds the first 
+%
 % USE:
 %   [cor,del]=correlation_ft(cfg,ftdata)
 %
