@@ -44,8 +44,10 @@ if ~isfield(cnfg,'latency')
     cnfg.latency=[ftdata.time{1}(1) ftdata.time{1}(end)]; end
 if ~isfield(cnfg,'window'), cnfg.window = 5; end
 if ~isfield(cnfg,'step'), cnfg.step = cnfg.window; end
-if ~isfield(cnfg,'maxlag'), cnfg.maxlag = (cnfg.window*ftdata.fsample)-1; end
-warning('It is recommended to define maxlag to reduce compational cost')
+if ~isfield(cnfg,'maxlag')
+    cnfg.maxlag = (cnfg.window*ftdata.fsample)-1;
+    warning('It is recommended to define maxlag to reduce compational cost')
+end
 if ~isfield(cnfg,'Nsurro'), cnfg.Nsurro = 100; end
 if ~isfield(cnfg,'pval'), cnfg.pval =   0.05; end
 if ~isfield(cnfg,'Nsurro'), cnfg.Nsurro = 0; end
