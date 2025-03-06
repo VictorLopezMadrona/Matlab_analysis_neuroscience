@@ -13,9 +13,12 @@ function plot_timelock_sem(cnfg,timelock)
 %            RGB 
 %            Default: gray [0.8 0.8 0.8]       
 % cfg.time; % If data in matrix form
+% cfg.sig_val; %a binary vector with significant time-points can be used to
+%              plot green squares of significance
 %
 
 % Log:
+% 20.02.2025: Added sig_val
 % 28.11.2024: Added default colors
 % 03.09.2024: Corrected an error when cfg.time was a column and not a row
 
@@ -78,5 +81,35 @@ P = fill(ttime, inBetween, color,'LineStyle','none');
 alpha(P,0.5)
 plot(timey,MU,'Color',color,'Linewidth',1);
 hold off        
-        
+
+%%% Plot significance
+if isfield(cnfg,'sig_val')
+    if length(cnfg.sig_val)~=length(timey)
+        error('To plot significance the sig_val vector must have the same length as the ''time'' vector')
+    end
+
+    starts=1+find(diff(cnfg.sig_val)==1);
+    stops=1+find(diff(cnfg.sig_val)==-1);
+    if ~isempty(starts)
+        if(stops(end)<starts(end))
+            starts=starts(1:end-1);
+        end
+        if(starts(1)>stops(1))
+            stops=stops(2:end);
+        end
+
+        %Display the significant values
+        hold on
+        ax=axis;
+        for k=1:length(starts)
+            p=patch(timey([starts(k) starts(k) stops(k) stops(k)]), [ax(3) ax(4) ax(4) ax(3)],'g','LineStyle','none');
+            set(p,'FaceAlpha',0.2, 'HitTest', 'off')
+        end
+    end
+end
+
+
+
+
+
         

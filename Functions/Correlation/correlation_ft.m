@@ -12,7 +12,7 @@ function [maxcor,del,cor,lag,THpos,THneg]=correlation_ft(cnfg,ftdata)
 %   latency     - [t_start t_end]
 %   window      - window length in time (s) [Def=5]
 %   step        - step between windows in time (s) [Def=window]
-%   maxlag      - max lag for xcorr (improve computational time) [Def=window-1]
+%   maxlag      - max lag for xcorr in samples [Def=window-1]
 %   resample    - Fs to resample data after filtering
 %   Nsurro      - Number of surrogates to statistical significance (Def=100)
 %   doplot      - true/false (Def: true)
@@ -20,7 +20,7 @@ function [maxcor,del,cor,lag,THpos,THneg]=correlation_ft(cnfg,ftdata)
 %   outpath     - string with path 
 %   infosave    - string with filename
 %
-% OUTPUT: Modify this
+% OUTPUT: 
 %   maxcor - max value of xcor (pos or neg) for each pair of signals
 %   del    - delay associated to maxcor
 %   cor    - dynamics of the xcor within maxlag averaged across windows
@@ -123,6 +123,7 @@ end
 Nsurro = cnfg.Nsurro;
 THpos = zeros(Nch,Nch); % this is my result
 THneg = zeros(Nch,Nch); % this is my result
+cor_surro = zeros(Nch,Nch,cnfg.maxlag*2+1,Nsurro);
 for chi=1:Nch-1
     for chj=chi+1:Nch
         Csurro = zeros(Nsurro,cnfg.maxlag*2+1);
@@ -135,6 +136,7 @@ for chi=1:Nch-1
                 [Caux(wi,:),lag] = xcorr(x,y,cnfg.maxlag,'coeff');
             end
             Csurro(si,:) = mean(Caux);
+            cor_surro(chi,chj,:,si) = mean(Caux);
         end
         %For each surrogate, I will do the average across windows and keep
         %the highest and lowest values.
@@ -185,7 +187,7 @@ if ~cnfg.doplot
     close(hdel)
 end
 if cnfg.dosave
-    save([cnfg.outpath 'Xcorr' cnfg.infosave],'cor','del','maxcor','lag','THpos','THneg')
+    save([cnfg.outpath 'Xcorr' cnfg.infosave],'cor','del','maxcor','lag','THpos','THneg','cor_surro')
 end
 
 
