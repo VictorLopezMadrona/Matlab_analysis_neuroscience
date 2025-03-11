@@ -22,7 +22,7 @@ function plot_erp(cnfg,ftdata)
 
 % Author: Victor Lopez Madrona <v.lopez.madrona@gmail.com>
 % License: BSD (3-clause)
-% Aug. 2021; Last revision: 27-Aug-2021
+% Aug. 2021; Last revision: 11-Mar-2025
 
 
 %% Initialization
@@ -34,7 +34,8 @@ if ~isfield(cnfg,'latency'), cnfg.latency=ftdata.time{1}([1 end]); end
 if ~isfield(cnfg,'channel')
     error('It is mandatory to select channels'), end
 if ~isfield(cnfg,'trigger')
-    error('It is mandatory to select trigggers'), end
+    cnfg.trigger = unique(ftdata.trialinfo); end
+    %error('It is mandatory to select trigggers'), end
 if ~isfield(cnfg,'outpath') && cnfg.dosave
     error('Outpath has not been specified to save the results'), end
 
