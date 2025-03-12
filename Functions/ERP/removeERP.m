@@ -33,12 +33,23 @@ amp_ERP = zeros(nch,ntr);
 % 2- Substract the ERP from each trial and channel
 for tri=1:ntr
     for chi=1:nch
-        lm = fitlm(tl_data.avg(chi,:),ftdata.trial{tri}(chi,:));
-        %In matrix
-        data_noERP(chi,(tri-1)*nsamples+1:tri*nsamples) = lm.Residuals.Raw-mean(lm.Residuals.Raw);
-        %In ft structure
-        ftdata_noERP.trial{tri}(chi,:) = lm.Residuals.Raw-mean(lm.Residuals.Raw);
-        %Relative amplitude of ERP
-        amp_ERP(chi,tri) = lm.Coefficients.Estimate(2,1);
+%         % Using fitlm
+%         lm = fitlm(tl_data.avg(chi,:),ftdata.trial{tri}(chi,:));
+%         %In matrix
+%         data_noERP(chi,(tri-1)*nsamples+1:tri*nsamples) = lm.Residuals.Raw-mean(lm.Residuals.Raw);
+%         %In ft structure
+%         ftdata_noERP.trial{tri}(chi,:) = lm.Residuals.Raw-mean(lm.Residuals.Raw);
+%         %Relative amplitude of ERP
+%         amp_ERP(chi,tri) = lm.Coefficients.Estimate(2,1);
+        
+        % Alternative using least squares
+        A = tl_data.avg(chi,:); A=A(:);
+        B = ftdata.trial{tri}(chi,:); B=B(:);
+        % Perform linear regression to estimate the contribution of A to B
+        amp_ERP(chi,tri) = (A' * A) \ (A' * B);  % Least squares solution 
+        % Calculate the predicted ERP contribution
+        erp_contribution = A * amp_ERP(chi,tri);
+        % Subtract the ERP contribution to get the residual signal
+        ftdata_noERP.trial{tri}(chi,:) = B - erp_contribution;
     end
 end
