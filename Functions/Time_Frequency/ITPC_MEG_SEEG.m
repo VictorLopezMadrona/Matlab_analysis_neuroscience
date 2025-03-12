@@ -532,6 +532,8 @@ for iter=1:size(itc.tf_corrected,1)
 %     title(['TF - ' itc.label{iter}]);  
 %     hold off
 end
+% Maximize the figure window to fill the screen
+set(h_tf, 'Units', 'normalized', 'OuterPosition', [0 0 1 1]);
     if cnfg.dosave
         savefig(h_tf,[cnfg.outpath 'TF' cnfg.infosave ])
         saveas(h_tf,[cnfg.outpath 'TF' cnfg.infosave '.png'])
@@ -573,6 +575,8 @@ for iter=1:size(itc.itpc,1)
     title(['ITPC - ' itc.label{iter}]);  
     hold off
 end
+% Maximize the figure window to fill the screen
+set(h_itpc, 'Units', 'normalized', 'OuterPosition', [0 0 1 1]);
     if cnfg.dosave
         savefig(h_itpc,[cnfg.outpath 'ITPC' cnfg.infosave ])
         saveas(h_itpc,[cnfg.outpath 'ITPC' cnfg.infosave '.png'])
