@@ -112,6 +112,8 @@ for iter=1:length(cnfg.channel)
     G(iter).ButtonDownFcn = @newFigure1;
     hold off
 end
+% Maximize the figure window to fill the screen
+set(h, 'Units', 'normalized', 'OuterPosition', [0 0 1 1]);
 
 if cnfg.dosave
     savefig(h,[cnfg.outpath 'ERP_resp' cnfg.infosave])
