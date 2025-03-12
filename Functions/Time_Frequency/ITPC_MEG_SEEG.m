@@ -3,6 +3,8 @@ function itc=ITPC_MEG_SEEG(cnfg,dataMEG,dataSEEG)
 
 %% Computes inter-trial coherence between MEG and SEEG
 %
+%   TF = (TF - Baseline)/Baseline
+%
 % Time metrics: *not finished* 
 %  - Inter-trial time-based correlation (ITCOR) *not finished*
 %  - Inter-trial time-based partial correlation (pITCOR) *not finished*
@@ -149,6 +151,7 @@ if isfield(cnfg,'trl') %cont data
 else
     cfg.toi    = cnfg.toi; %trial data
 end
+cfg.pad='nextpow2';
 freq       = ft_freqanalysis(cfg, dataMIX);
 freq.fourierspctrm(isnan(freq.fourierspctrm))=0;
 if isfield(cnfg,'trl') %cont data
@@ -266,18 +269,27 @@ end
 if ismember({'TF'}, cnfg.metric)
     t_bl(1) = find(freq.time>=cnfg.baseline(1),1);
     t_bl(2) = find(freq.time>=cnfg.baseline(2),1);
-    t0 = find(freq.time>=0,1);
+    %t0 = find(freq.time>=0,1);
+    % Include also the baseline in the stats
+    t0 = 1;
     
     %Ratio in dB between TF values versus baseline
     MU_power = mean(freq.powspctrm(:,:,t_bl(1):t_bl(2)),3);
     for t=1:size(freq.powspctrm,3)
-        freq.power_corrected(:,:,t) = 10*log10(freq.powspctrm(:,:,t)./MU_power);
+        %freq.power_corrected(:,:,t) = 10*log10(freq.powspctrm(:,:,t)./MU_power);
+        % Updated to have the relative ratio with respect to baseline
+        freq.power_corrected(:,:,t) = (freq.powspctrm(:,:,t)-MU_power)./MU_power;
     end
+    % Correct for non-measured values
+    freq.power_corrected(freq.power_corrected==-1) = NaN;
+    freq.powspctrm(freq.powspctrm==0) = NaN;
+    freq.fourierspctrm(freq.fourierspctrm==0) = NaN;
     itc.powspctrm    = freq.powspctrm; 
     itc.tf_corrected = freq.power_corrected;
 
     %%% Stats using FDR
     % Compute pval for each point across trials.
+    % Test if TF is different from baseline.
     [Ntr,Nch,Nf,Nt] = size(F); 
     pval_tf = ones(Nch,Nf,Nt);
     mask_tf = zeros(Nch,Nf,Nt);
@@ -286,6 +298,8 @@ if ismember({'TF'}, cnfg.metric)
         for ti=t0:Nt
             power_aux = squeeze(abs(freq.fourierspctrm(:,chi,:,ti).^2));
             [~,pval_tf(chi,:,ti)] = ttest(baseline_aux,power_aux);
+            %rel_ratio = (power_aux-baseline_aux)./baseline_aux;
+            %[~,pval_tf(chi,:,ti)] = ttest(rel_ratio);
         end
         [pID,pN] = fdr(pval_tf(chi,:,t0:end),cnfg.FDR_q); %False Discovery Rate for each channel
         mask_tf(chi,:,:)  = pval_tf(chi,:,:)<pID;
@@ -474,12 +488,29 @@ for iter=1:size(itc.tf_corrected,1)
     tf_fig = squeeze(itc.tf_corrected(iter,:,:));
     if isfield(itc,'pval_tf')
         tf_fig_pval = squeeze(itc.pval_tf(iter,:,:));
-        tf_fig(tf_fig_pval>itc.fdr_tf(iter,1)) = 0; %Select here the FDR. 1=pID; 2=pN
+        %correct NaN values and zero values
+        %tf_fig_pval(isnan(tf_fig_pval))=1;
+        %tf_fig_pval(tf_fig_pval==0)=1;
+
+        % Option 1: Apply a mask
+        %tf_fig(tf_fig_pval>itc.fdr_tf(iter,1)) = 0; %Select here the FDR. 1=pID; 2=pN
+        
+        % Option 2: Plot all the TF and include a circle where it is
+        % signficant
+        mask_sig = tf_fig_pval<itc.fdr_tf(iter,1);
+        B = bwboundaries(mask_sig);
+        %tf(:,1:7,:)=0;
+        %figure, hold on,
+        %imagesc(itc.time, itc.freq, squeeze(mean(tf_osc,1))-squeeze(mean(tf_pt,1)));
     end
     if isfield(itc,'tf_th')
         tf_fig(tf_fig<itc.tf_th(iter) & tf_fig>itc.tf_th_inf(iter)) = 0;
     end
     P=imagesc(itc.time, itc.freq, tf_fig);
+    % Option 2: Plot circle of significance
+    for i=1:length(B)
+        plot(itc.time(B{i}(:,2)),itc.freq(B{i}(:,1)),'k'),
+    end
     
     %colormap 'winter'
     set(P,'UserData',iter);
@@ -520,7 +551,16 @@ for iter=1:size(itc.itpc,1)
     %%%%%%%%%%%%%%%%%%%%%%%%
     hold on
     if isfield(itc,'itpc_sig')
-        P=imagesc(itc.time, itc.freq, squeeze(itc.itpc_sig(iter,:,:)));
+        % Option 1: Plot mask
+        %P=imagesc(itc.time, itc.freq, squeeze(itc.itpc_sig(iter,:,:)));
+        
+        % Option 2: plot all data and include significance
+        P=imagesc(itc.time, itc.freq, squeeze(itc.itpc(iter,:,:)));
+        mask_sig = squeeze(itc.itpc_sig(iter,:,:))>0;
+        B = bwboundaries(mask_sig);
+        for i=1:length(B)
+            plot(itc.time(B{i}(:,2)),itc.freq(B{i}(:,1)),'k'),
+        end
     else
         P=imagesc(itc.time, itc.freq, squeeze(itc.itpc(iter,:,:)));
     end
