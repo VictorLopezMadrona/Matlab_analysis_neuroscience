@@ -519,6 +519,7 @@ for iter=1:size(itc.tf_corrected,1)
     axis([cnfg.toi(1) cnfg.toi(end) cnfg.foilim(1) cnfg.foilim(end)])
     caxis([-max(abs(itc.tf_corrected(:))) max(abs(itc.tf_corrected(:)))])
     title(['TF - ' itc.label{iter}]); 
+    colorbar
     hold off
     
 %     hold on
