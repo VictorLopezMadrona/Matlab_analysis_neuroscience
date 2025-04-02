@@ -88,7 +88,8 @@ for tr=1:length(cnfg.trigger)
         
         cfg=[];
         cfg.channel = iter;
-        cfg.color   = colors(tr,:);
+        color_tr = mod(tr-1,7)+1;
+        cfg.color   = colors(color_tr,:);
         plot_timelock_sem(cfg,timelock)
         
         %set(h,'UserData',iter);
