@@ -28,7 +28,7 @@ function [Wtf,H,W] = tf_nmf(cnfg,ftdata)
 %
 %       dosave   - logical. True/false save/not save the results
 %       outpath  - string. Path to save the results if dosave=true
-%       plotfig  - logical. Plot the figure with the results.
+%       doplot   - logical. Plot the figure with the results.
 %       infosave - string to include in the saved filed
 %
 %   ftdata - Data in format field trip
@@ -53,7 +53,7 @@ if ~isfield(cnfg,'a'), cnfg.a = cnfg.M/16; end
     
 if ~isfield(cnfg,'infosave'), cnfg.infosave=''; end
 if ~isfield(cnfg,'dosave'), cnfg.dosave=false; end
-if ~isfield(cnfg,'plotfig'), cnfg.plotfig=true; end
+if ~isfield(cnfg,'doplot'), cnfg.doplot=true; end
 if ~isfield(cnfg,'outpath') && cnfg.dosave
     error('Outpath has not been specified to save the results'), end
 
@@ -128,7 +128,78 @@ H0 = abs(S(1:k,:));
 [T, F, S] = size(pow_mean);
 Wtf = reshape(W, [T, F, k]);   % Back to time × freq × sensors
 
+%% PLOT results
 
+if cnfg.dosave
+    if ~strcmp(cnfg.outpath(end),'\'), cnfg.outpath = [cnfg.outpath '\']; end
+    if ~exist(cnfg.outpath,'dir'), mkdir(cnfg.outpath); end
+end
+
+ff = linspace(0,Fs/2,size(c,1));
+tt = linspace(cnfg.stimdef(1),cnfg.stimdef(2),size(pow_mean,2));
+label = ftdata.label;
+    
+if cnfg.doplot || cnfg.dosave
+    
+% Plot Time-Frequency: Wtf
+h=figure;
+for iter=1:k
+    nrows = ceil(sqrt(k));
+    ncols = ceil(k/nrows);
+    G(iter) = subplot(nrows,ncols,iter); 
+    G(iter).ButtonDownFcn = @newFigure1;
+
+    P=imagesc(tt,ff,squeeze(Wtf(:,:,iter)));
+    
+    %colormap 'winter'
+    xlabel('Time (s)')
+    ylabel('Frequency (Hz)')
+    set(P,'UserData',iter);
+    set(P, 'HitTest', 'off');
+    axis xy
+    %axis([cnfg.toi(1) cnfg.toi(end) cnfg.foilim(1) cnfg.foilim(end)])
+    %caxis([-max(abs(itc.tf_corrected(:))) max(abs(itc.tf_corrected(:)))])
+    title(['TF Comp - ' num2str(iter)]); 
+    colorbar
+end
+% Maximize the figure window to fill the screen
+set(h, 'Units', 'normalized', 'OuterPosition', [0 0 1 1]);
+    if cnfg.dosave
+        savefig(h,[cnfg.outpath 'NMF_Wtf' cnfg.infosave ])
+        saveas(h,[cnfg.outpath 'NMF_Wtf' cnfg.infosave '.png'])
+    end
+    if ~cnfg.doplot, close(h), end
+end
+
+if cnfg.dosave
+    save([cnfg.outpath 'NMFval' cnfg.infosave],'Wtf','H','F','tt','ff','label')
+end
+
+end
+
+ function newFigure1(h1,~)
+%% Function to act on subplot click
+%         Mouse click: Plots the selected subplot to a new figure
+%  Ctrl + Mouse click: Delete subplot
+
+    switch get(gcf,'SelectionType')
+        case 'normal'
+            F = figure();
+            copyobj(h1.Children,gca(F));
+            % Copy the selected subplot title
+            tmp = get(h1,'title'); tmp = tmp.String;
+            % Set title to the new figure
+            title(gca(F), tmp);
+            
+            % Set axis to the new figure
+            tmp = get(h1,'XLim');
+            xlim(gca(F), tmp)
+            tmp = get(h1,'YLim');
+            ylim(gca(F), tmp)
+        case 'alt'
+            delete(h1);
+    end
+ end
 
 
 
