@@ -25,6 +25,7 @@ function [Wtf,H,W] = tf_nmf(cnfg,ftdata)
 %       time_trial - vector with each trial onset in seconds
 %       M          - Time length for Gabor im samples (Def 128)
 %       a          - Gabor resolution (Def M/16)
+%       freqlim    - Frequencies of interest. Ex [5 100]
 %
 %       dosave   - logical. True/false save/not save the results
 %       outpath  - string. Path to save the results if dosave=true
@@ -76,6 +77,13 @@ for si=1:size(c,3)
     for fi=1:length(ff)
         pow_corrected(fi,:,si) = zscore(abs(c(fi,:,si)));
     end
+end
+
+% Limit the frequency dimension
+if isfield(cnfg,'freqlim')
+    [~, fini] = min(abs(ff - cnfg.freqlim(1)));  % index of initial freq
+    [~, fend] = min(abs(ff - cnfg.freqlim(2)));  % index of initial freq    
+    pow_corrected = pow_corrected(fini:fend,:,:);
 end
 
 % Create trials from continuous GABOR. Here I need time_trial
@@ -135,7 +143,11 @@ if cnfg.dosave
     if ~exist(cnfg.outpath,'dir'), mkdir(cnfg.outpath); end
 end
 
-ff = linspace(0,Fs/2,size(c,1));
+if isfield(cnfg,'freqlim')
+    ff = linspace(cnfg.freqlim(1),cnfg.freqlim(2),size(c,1));
+else
+    ff = linspace(0,Fs/2,size(c,1));
+end
 tt = linspace(cnfg.stimdef(1),cnfg.stimdef(2),size(pow_mean,2));
 label = ftdata.label;
     
