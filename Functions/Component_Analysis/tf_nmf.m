@@ -27,7 +27,8 @@ function [Wtf,H,W] = tf_nmf(cnfg,ftdata)
 %       a          - Gabor resolution (Def M/16)
 %       freqlim    - Frequencies of interest. Ex [5 100]
 %       Nsurro     - Number of surrogates. Def=100
-%       stats      - method for stats: 'cluster' (def), 'pixel'
+%       stats      - method for stats: Def 'std', 'cluster', 'pixel'
+%       alpha      - pval for std stats. Def= 0.01
 %
 %       dosave   - logical. True/false save/not save the results
 %       outpath  - string. Path to save the results if dosave=true
@@ -54,7 +55,12 @@ if ~isfield(cnfg,'Ncomp'), cnfg.Ncomp = 'velicer'; end
 if ~isfield(cnfg,'M'), cnfg.M = 128; end
 if ~isfield(cnfg,'a'), cnfg.a = cnfg.M/16; end
 if ~isfield(cnfg,'Nsurro'), cnfg.Nsurro = 100; end
-if ~isfield(cnfg,'stats'), cnfg.stats = 'cluster'; end
+if ~isfield(cnfg,'stats'), cnfg.stats = 'std'; end
+if ismember(cnfg.stats,{'cluster','pixel'}) && cnfg.Nsurro==0
+    error(['You need to specify some surrogates to perform ' cnfg.stats ' stats'])
+end
+if ~isfield(cnfg,'alpha'), cnfg.alpha = 0.01; end
+alpha = norminv(1-cnfg.alpha);
 
 if ~isfield(cnfg,'infosave'), cnfg.infosave=''; end
 if ~isfield(cnfg,'dosave'), cnfg.dosave=false; end
@@ -142,15 +148,19 @@ Wtf = reshape(W, [T, F, k]);   % Back to time × freq × sensors
 
 %% STATS
 
-if cnfg.Nsurro > 0
-    disp('Computing surrogates on NMF...')
-    k_surro=1;
-    W0 = abs(U(:,1:k_surro));
-    H0 = abs(S(1:k_surro,:));
+if ismember(cnfg.stats,{'cluster','pixel'})
+    % Values to keep later
     surro_cluster = zeros(1,cnfg.Nsurro);
     pixel_max = zeros(1,cnfg.Nsurro);
     pixel_min = zeros(1,cnfg.Nsurro);
     THclus_mask = zeros(T,F,k);
+    THmax = [];
+    
+    disp('Computing surrogates on NMF...')
+    k_surro=1;
+    W0 = abs(U(:,1:k_surro));
+    H0 = abs(S(1:k_surro,:));
+
     for si=1:cnfg.Nsurro
         % Define surrogate trials between the first and the last one at random time
         % points
@@ -239,10 +249,7 @@ if cnfg.Nsurro > 0
             THclus_mask(:,:,ki) = THclus_mask_aux;
         end
     end
-     
 end
-
-
 
 %% PLOT results
 
@@ -272,6 +279,7 @@ for iter=1:k
     Witer = squeeze(Wtf(:,:,iter));
     P=imagesc(tt,ff,Witer);
     
+    %%% STATS %%%
     if strcmp(cnfg.stats,'pixel')
         mask_max = Witer>=THmax;
         B = bwboundaries(mask_max);
@@ -291,7 +299,16 @@ for iter=1:k
             plot(tt(B{i}(:,2)),ff(B{i}(:,1)),'k','LineWidth',1.5),
         end
     end
-    
+    if strcmp(cnfg.stats,'std')
+        Wtf_iter = squeeze(Wtf(:,:,iter));
+        th_aux(1) = mean(Wtf_iter(:)+alpha*std(Wtf_iter(:)));
+        th_aux(2) = mean(Wtf_iter(:)-alpha*std(Wtf_iter(:)));
+        mask_max = Wtf_iter>=th_aux(1) | Wtf_iter<=th_aux(2);
+        B = bwboundaries(mask_max);
+        for i=1:length(B)
+            plot(tt(B{i}(:,2)),ff(B{i}(:,1)),'k','LineWidth',1.5),
+        end
+    end
     
     %colormap 'winter'
     xlabel('Time (s)')
