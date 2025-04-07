@@ -139,7 +139,7 @@ cfg.a          = cfg.M/8; %Step of the time window
 cfg.stats      = 'std'; %Select outlayers based on 2x standard deviation
 cfg.alpha      = 0.01;
 
-cfg.time_trial = time_trial(:,3);
+[Wtf,H,W] = tf_nmf(cfg,data);
 
 
 
