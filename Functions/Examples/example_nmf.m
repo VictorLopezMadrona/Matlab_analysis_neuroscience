@@ -114,6 +114,8 @@ time_trial = dur_burst(1) : duration : (duration*(Ntrial-1)+dur_burst(1));
 % From 0 to dur_burst(1) is pre-trial. From dur_burst(1) to duration is
 % post-trial
 stimdef = [-dur_burst(1) duration-dur_burst(1)];
+% Time vector from the first sample to the last
+time_vector = linspace(0,duration*Ntrial,length(data));
 
 fs = 512;              % Sampling frequency (Hz)
 duration = 1;          % Duration (s)
@@ -127,7 +129,7 @@ data = [];
 data = signal_cont; %This is my input data
 
 cfg = [];
-cfg.time       = t; % Time vector
+cfg.time       = time_vector;
 cfg.Fs         = fs;
 cfg.time_trial = time_trial;
 cfg.stimdef    = stimdef; %Time onset of each trial
