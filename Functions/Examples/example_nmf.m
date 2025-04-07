@@ -107,6 +107,9 @@ pink_noise_ind; %Individual noise for each channel
 
 %% Compute NMF
 
+data = [];
+data = signal_cont; %This is my input data
+
 % Obtain a vector with the starting point of each trial in seconds
 % The starting point is the first value of 'dur_burst'
 time_trial = dur_burst(1) : duration : (duration*(Ntrial-1)+dur_burst(1));
@@ -117,16 +120,7 @@ stimdef = [-dur_burst(1) duration-dur_burst(1)];
 % Time vector from the first sample to the last
 time_vector = linspace(0,duration*Ntrial,length(data));
 
-fs = 512;              % Sampling frequency (Hz)
-duration = 1;          % Duration (s)
-freq_burst = [15 25];  % Frequency band of the activity to include
-A_burst = 3;           % Amplitude of the burst with respect to the noise
-dur_burst = [0.3 0.5]; % Time window where the burst appears. The first point will be considered as trial onset
-Ntrial = 100;  
-
 %%% Set the parameters and run the function
-data = [];
-data = signal_cont; %This is my input data
 
 cfg = [];
 cfg.time       = time_vector;

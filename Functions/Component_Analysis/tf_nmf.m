@@ -312,7 +312,14 @@ for iter=1:k
     %%% STATS %%%
     if strcmp(cnfg.stats,'pixel')
         mask_max = Witer>=THmax;
-        B = bwboundaries(mask_max);
+        % Check if image_processing_toolbox is installed
+        if isempty(which('bwconncomp'))
+            % Use my custom code
+            warning('Using custom_bwboundaries, which has not been fully checked')
+            B = custom_bwboundaries(mask_max);
+        else
+            B = bwboundaries(mask_max);
+        end
         for i=1:length(B)
             plot(tt(B{i}(:,2)),ff(B{i}(:,1)),'k','LineWidth',1.5),
         end
@@ -324,7 +331,14 @@ for iter=1:k
     end
     if strcmp(cnfg.stats,'cluster')
         mask_max = squeeze(THclus_mask(:,:,iter));
-        B = bwboundaries(mask_max);
+        % Check if image_processing_toolbox is installed
+        if isempty(which('bwconncomp'))
+            % Use my custom code
+            warning('Using custom_bwboundaries, which has not been fully checked')
+            B = custom_bwboundaries(mask_max);
+        else
+            B = bwboundaries(mask_max);
+        end
         for i=1:length(B)
             plot(tt(B{i}(:,2)),ff(B{i}(:,1)),'k','LineWidth',1.5),
         end
@@ -334,7 +348,14 @@ for iter=1:k
         th_aux(1) = mean(Wtf_iter(:)+alpha*std(Wtf_iter(:)));
         th_aux(2) = mean(Wtf_iter(:)-alpha*std(Wtf_iter(:)));
         mask_max = Wtf_iter>=th_aux(1) | Wtf_iter<=th_aux(2);
-        B = bwboundaries(mask_max);
+        % Check if image_processing_toolbox is installed
+        if isempty(which('bwconncomp'))
+            % Use my custom code
+            warning('Using custom_bwboundaries, which has not been fully checked')
+            B = custom_bwboundaries(mask_max);
+        else
+            B = bwboundaries(mask_max);
+        end
         for i=1:length(B)
             plot(tt(B{i}(:,2)),ff(B{i}(:,1)),'k','LineWidth',1.5),
         end
