@@ -1,6 +1,6 @@
 function [Wtf,H,W] = tf_nmf(cnfg,ftdata)
 
-%% From continuos data in FieldTrip format, compute Gabor, trials and NMF.
+%% From continuos data (FieldTrip or matrix), compute Gabor, trials and NMF.
 % It will do the trial average before the NMF.
 % Time and Frequency are vectorize into a single dimension
 % The second dimension is space (sensor)
@@ -35,7 +35,16 @@ function [Wtf,H,W] = tf_nmf(cnfg,ftdata)
 %       doplot   - logical. Plot the figure with the results.
 %       infosave - string to include in the saved filed
 %
-%   ftdata - Data in format field trip
+%   data - Data in format field trip or matrix.
+%
+% %%%%%%%%%%% CASE 'data' is a matrix %%%%%%%%%%%%%%%%
+% This code has been prepared to work with FieldTrip structures. However,
+% it can be used with any matrix of data by defining some extra parameters:
+%
+%   data        - [Nch x Nsamples]
+%   cfg.time    - vector of Nsamples with the timestamp of each sample
+%   cfg.Fs      - Sampling rate
+%   cfg.label   - [Optional] cell of strings with the name of each channel
 %
 % Outputs:
 %    Wtf - W matrix reshaped to be 2D (time x freq)
@@ -46,7 +55,7 @@ function [Wtf,H,W] = tf_nmf(cnfg,ftdata)
 
 % Author: Victor Lopez Madrona <v.lopez.madrona@gmail.com>
 % License: BSD (3-clause)
-% Aug. 2025; Last revision: 02-Apr-2025
+% Aug. 2025; Last revision: 07-Apr-2025
 
 
 %% Initialization
@@ -67,6 +76,27 @@ if ~isfield(cnfg,'dosave'), cnfg.dosave=false; end
 if ~isfield(cnfg,'doplot'), cnfg.doplot=true; end
 if ~isfield(cnfg,'outpath') && cnfg.dosave
     error('Outpath has not been specified to save the results'), end
+
+%%% Case ftdata is a matrix
+if ismatrix(ftdata)
+    [Nch,Nsamples] = size(ftdata);
+    disp(['Input data is a matrix with ' num2str(Nch) ' channels and '...
+        num2str(Nsamples) ' samples.'])
+    if ~isfield(cnfg,'time') 
+        error('Parameter ''time'' is mandatory when working with matrix')
+    end
+    if ~isfield(cnfg,'Fs') 
+        error('Parameter ''Fs'' is mandatory when working with matrix')
+    end
+    if ~isfield(cnfg,'label'), cnfg.label = []; end
+    
+    data = ftdata;
+    clear ftdata
+    ftdata.trial{1} = data;
+    ftdata.fsample  = cnfg.Fs;
+    ftdata.time{1}  = cnfg.time;
+    ftdata.label    = cnfg.label;
+end
 
 %% COMPUTE GABOR
 
