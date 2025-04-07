@@ -16,6 +16,7 @@ function [ftdata_noERP, amp_ERP] = removeERP(ftdata)
 % 11/03/2025
 
 %% To do
+% Compute it for different trials as well
 % Include the option to work with data matrix instead of ft structure
 
 % 1- Compute the averaged ERP
