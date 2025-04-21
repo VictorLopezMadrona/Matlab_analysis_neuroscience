@@ -55,7 +55,10 @@ function [Wtf,H,W] = tf_nmf(cnfg,ftdata)
 
 % Author: Victor Lopez Madrona <v.lopez.madrona@gmail.com>
 % License: BSD (3-clause)
-% Aug. 2025; Last revision: 07-Apr-2025
+% Aug. 2025; Last revision: 14-Apr-2025
+
+% Changes log:
+% 2025/04/14: Correct all channels together, not one by one
 
 
 %% Initialization
@@ -78,7 +81,7 @@ if ~isfield(cnfg,'outpath') && cnfg.dosave
     error('Outpath has not been specified to save the results'), end
 
 %%% Case ftdata is a matrix
-if ismatrix(ftdata)
+if ~isstruct(ftdata)
     [Nch,Nsamples] = size(ftdata);
     disp(['Input data is a matrix with ' num2str(Nch) ' channels and '...
         num2str(Nsamples) ' samples.'])
@@ -113,11 +116,19 @@ g = gabwin({'tight', 'hann'}, a, M);
 c = dgtreal(y, g, a, M);
 ff = linspace(0,Fs/2,size(c,1));
 pow_corrected = [];
-for si=1:size(c,3)
-    for fi=1:length(ff)
-        pow_corrected(fi,:,si) = zscore(abs(c(fi,:,si)));
+% Correct all channels together, not one by one
+for fi=1:length(ff)
+    c_aux = abs(c(fi,:,:));
+    for si=1:size(c,3)
+        % Manual zscore on each channel using the info from all channels
+        pow_corrected(fi,:,si) = (abs(c(fi,:,si))-mean(c_aux(:))) / std(c_aux(:)) ;
     end
 end
+% for si=1:size(c,3)
+%     for fi=1:length(ff)
+%         pow_corrected(fi,:,si) = zscore(abs(c(fi,:,si)));
+%     end
+% end
 
 % Limit the frequency dimension
 if isfield(cnfg,'freqlim')
@@ -345,8 +356,8 @@ for iter=1:k
     end
     if strcmp(cnfg.stats,'std')
         Wtf_iter = squeeze(Wtf(:,:,iter));
-        th_aux(1) = mean(Wtf_iter(:)+alpha*std(Wtf_iter(:)));
-        th_aux(2) = mean(Wtf_iter(:)-alpha*std(Wtf_iter(:)));
+        th_aux(1) = mean(Wtf_iter(:))+alpha*std(Wtf_iter(:));
+        th_aux(2) = mean(Wtf_iter(:))-alpha*std(Wtf_iter(:));
         mask_max = Wtf_iter>=th_aux(1) | Wtf_iter<=th_aux(2);
         % Check if image_processing_toolbox is installed
         if isempty(which('bwconncomp'))
