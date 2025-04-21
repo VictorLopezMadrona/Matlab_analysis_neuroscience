@@ -4,17 +4,26 @@ function src_out = ica_exp_var(src_in,data)
 % It also reorders the IC matrix in function of the variance.
 % AND it converts the matrix to do the loadings "positive".
 % 
-% USE: src_out = ica_exp_var(src_in,data);
+% USES: 
+%   src_out = ica_exp_var(src_in,data);
 %
 % INPUT:
-%   src_in: result from ft_componentanalysis
-%   data:   it can be a matrix with the original data or a fieldtrip struct
+%   src_in: result from ft_componentanalysis.
+%   data:   Matrix with the original data (pre-ICA) or a fieldtrip struct
+%
+% OUTPUT:
+%   src_out: same as src_ica but with the new order. Note that other
+%            variables in src_in may not be modified with this function
 %
 % See also: 
 
 % Author: Victor Lopez Madrona <v.lopez.madrona@gmail.com>
 % License: BSD (3-clause)
-% Sep. 2020; Last revision: 12-Jan-2021
+% Sep. 2020; Last revision: 14-Apr-2025
+
+% Changes log:
+% 2025/04/14: warning - time-courses not reordered (to-do) 
+
 
 if isstruct(data)
     data = data.trial{1};
@@ -42,4 +51,13 @@ Mmin=min(src_out.topo);
 p=(Mmax>abs(Mmin))-(Mmax<abs(Mmin));
 src_out.topo = src_out.topo.*p;
 src_out.unmixing = src_out.unmixing.*p';
+
+% Reorder time-courses as well
+if isfield(src_out,'trial')
+    if ~isempty(src_out.trial)
+        warning('Time-courses in src_out were present but not reordered')
+    end
+end
+
+
 
