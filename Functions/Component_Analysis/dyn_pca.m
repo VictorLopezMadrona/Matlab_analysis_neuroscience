@@ -1,5 +1,5 @@
 
-function [data_pca,eigenvectors,eigenvalues]=dyn_pca(data,ncomps)
+function [data_pca,eigenvectors,eigenvalues,mu]=dyn_pca(data,ncomps)
 
 %% Computes principal component analysis following runica.m code.
 % Pipeline for ICA:
@@ -20,13 +20,20 @@ function [data_pca,eigenvectors,eigenvalues]=dyn_pca(data,ncomps)
 %   data_pca
 %   eigenvectors
 %   eigenvalues
+%   mu
 %
 % See also: runica.m
 
 % Author: Victor Lopez Madrona <v.lopez.madrona@gmail.com>
 % License: BSD (3-clause)
-% May 2020; Last revision: 5-May-2020
+% May 2020; Last revision: 14-Apr-2025
 
+% Change log:
+% 2025/04/14: center the data before pca
+
+% Center the data
+mu = mean(data, 2);           % Compute mean across time (columns)
+data = data - mu;    % Subtract mean from each row (channel)
 
 PCdat2 = data';                    % transpose data
 [PCn,~]=size(PCdat2);                  % now p chans,n time points
