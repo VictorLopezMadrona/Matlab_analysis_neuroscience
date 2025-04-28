@@ -28,7 +28,7 @@ function [data,ERS,tt] = simulate_ers_erd(cnfg)
 %                   (Def: [0.5 1]) The ERS appear between 0.5 and 1 s
 %                   after trial onset
 %      .freq_band - Frequency band for the induced ERS in Hz (Def: [70 - 90])
-%      .amplitude - Amplitude of the ERS (Def: 10)
+%      .amplitude - Amplitude of the ERS (Def: 1)
 %      .plot_tf   - Compute and plot the time-freq. (Def = true)
 %      .mode      - 'ers' or 'erd' (Def: 'ers')
 %
@@ -55,7 +55,7 @@ if ~isfield(cnfg,'Ntrial'), cnfg.Ntrial = 100; end
 if ~isfield(cnfg,'trial_dur'), cnfg.trial_dur = 2; end
 if ~isfield(cnfg,'time_band'), cnfg.time_band = [0.5 1]; end
 if ~isfield(cnfg,'freq_band'), cnfg.freq_band = [70 90]; end
-if ~isfield(cnfg,'amplitude'), cnfg.amplitude = 10; end
+if ~isfield(cnfg,'amplitude'), cnfg.amplitude = 1; end
 if ~isfield(cnfg,'Fs'), cnfg.Fs = 500; end
 if ~isfield(cnfg,'plot_tf'), cnfg.plot_tf = true; end
 if ~isfield(cnfg,'mode'), cnfg.mode = 'ers'; end
@@ -131,9 +131,25 @@ else
 end
     
 
-% Filter the noise around the frequency band of interest
+% Generate oscillation
+cfg = [];
+cfg.Fs = cnfg.Fs;      
+cfg.dur = Ntrial*duration+1;      
+cfg.freq_band = cnfg.freq_band; 
+ERS = generate_oscillation(cfg);
+% Filter the signal to avoid sharp transients
 [b, a] = butter(2, [freq_burst(1) freq_burst(2)]/(Fs/2), 'bandpass');  % 2nd-order Butterworth
-ERS = filtfilt(b, a, background_noise);       % Zero-phase filtering same noise
+ERS = filtfilt(b, a, ERS);       % Zero-phase filtering same noise
+% Normalize the oscillation to have the same mean and std than the noise
+mu = mean(background_noise);
+sigma = std(background_noise);
+ERS = (ERS/std(ERS))*sigma;
+ERS = ERS-mean(ERS)+mu;
+ERS = ERS(1:length(hann_all));
+
+% Filter the noise around the frequency band of interest
+%[b, a] = butter(2, [freq_burst(1) freq_burst(2)]/(Fs/2), 'bandpass');  % 2nd-order Butterworth
+%ERS = filtfilt(b, a, background_noise);       % Zero-phase filtering same noise
 %ERS = filtfilt(b, a, background_noise);       % Reversed noise
 %ERS = filtfilt(b, a, randn(1,Ntot));       % White noise   
 %ERS = eegfilt(randn(1,Ntot), Fs, freq_burst(1),0); % 
