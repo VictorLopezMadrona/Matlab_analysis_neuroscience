@@ -77,7 +77,7 @@ if ~isfield(cnfg,'f_phase')
     cnfg.f_phase = [3 16 1 2]; end
 if ~isfield(cnfg,'f_amp')
     cnfg.f_amp = [20 120 5 20]; end
-if ~isfield(cnfg,'stats'), cnfg.stats = 'cluster'; end
+if ~isfield(cnfg,'stats'), cnfg.stats = 'pixel'; end
 if ~isfield(cnfg,'pval'), cnfg.pval = 0.01; end
 if ~isfield(cnfg,'pval_clus'), cnfg.pval_clus = 0.01; end
 if ~isfield(cnfg,'Nsurro'), cnfg.Nsurro = 0; end
