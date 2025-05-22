@@ -1,5 +1,5 @@
 
-function signal = generate_oscillation(cnfg)
+function [signal, t] = generate_oscillation(cnfg)
 
 %% Generates an oscillatory signal with a given bandwidth.
 % The duration of each cycle is obtained from a gaussian distribution
