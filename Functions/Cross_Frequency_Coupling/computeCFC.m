@@ -46,9 +46,10 @@ function comodulogram=computeCFC(cnfg,data_phase,data_amplitude)
 
 % Author: Victor Lopez Madrona <v.lopez.madrona@gmail.com>
 % License: BSD (3-clause)
-% Dec. 2016; Last revision: 16-Aug-2021
+% Dec. 2016; Last revision: 21-Apr-2025
 
 % Change log:
+% 21/04/2025: Option to estimate phase using cycle-by-cycle metrics
 % 24/06/2024: Low-pass and high-pass filter instead of bandpass
 % 16/8/2021: Updated to enter the parameters in a cfg struct
 
@@ -64,6 +65,10 @@ if ~isfield(cnfg,'f_amp')
     cnfg.f_amp = [20 100 5 20]; end
 if ~isfield(cnfg,'Nsurro')
     cnfg.Nsurro = 0; end
+if ~isfield(cnfg,'cyclebycycle')
+    cnfg.cyclebycycle = false;
+end
+cyclebycle = cnfg.cyclebycycle;
 
 Fs      = cnfg.Fs;
 bins    = cnfg.bins;
@@ -145,7 +150,11 @@ for x=1:lx
         data_gamma=eegfilt(data_gamma,Fs,0,y_max);
         
         %Compute phase. Other methods can be applyed here:
-        x_phase = angle(hilbert(data_theta));
+        if cyclebycle
+            [x_phase, phase_symmetry] = cyclebycycle_phase(data_phase,x_theta(x),Fs,BW_theta/2);
+        else
+            x_phase = angle(hilbert(data_theta));
+        end
         [MI(y,x),CFC(y,x,:)]=modulation_index(x_phase,data_gamma,bins);
         if Nsurro > 0
             MI_pval(y,x,:)=compute_surrogate(x_phase,data_gamma,bins,Nsurro);
