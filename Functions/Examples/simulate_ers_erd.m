@@ -1,5 +1,5 @@
 
-function [data,ERS,tt] = simulate_ers_erd(cnfg)
+function [data,ERS,time_data] = simulate_ers_erd(cnfg)
 
 %% Simulate realistic brain data with trial-based induced increases of 
 % activity at a given frequency band.
@@ -36,7 +36,7 @@ function [data,ERS,tt] = simulate_ers_erd(cnfg)
 %   data - Simulated time-course with all the trials. 
 %          data(1) corresponds to the first trial onset. 
 %   ERS  - ERS (or ERD) time course
-%   time-data - vector with the time points associated to 'data'
+%   time_data - vector with the time points associated to 'data'
 %
 %   It also plots the time-frequency of the response using Gabor
 %
@@ -95,7 +95,7 @@ else
     
     %If the input data is too short, we mirror it until we have enough length
     x = cnfg.data;
-    Nw = ceil(Ntot,length(x)); 
+    Nw = ceil(Ntot/length(x)); 
     x_aux = x;
     for wi=1:Nw
         x = x(end:-1:end); %mirror the signal
@@ -137,6 +137,7 @@ cfg.Fs = cnfg.Fs;
 cfg.dur = Ntrial*duration+1;      
 cfg.freq_band = cnfg.freq_band; 
 ERS = generate_oscillation(cfg);
+ERS = ERS + randn(1,length(ERS))*0.1; % Somw white noise for the transients
 % Filter the signal to avoid sharp transients
 [b, a] = butter(2, [freq_burst(1) freq_burst(2)]/(Fs/2), 'bandpass');  % 2nd-order Butterworth
 ERS = filtfilt(b, a, ERS);       % Zero-phase filtering same noise
