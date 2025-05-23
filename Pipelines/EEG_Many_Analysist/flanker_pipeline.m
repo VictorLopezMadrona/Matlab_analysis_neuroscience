@@ -126,6 +126,10 @@ BAD_TRIAL = length(bad_trials_all); % <--- Number of bad trials
 
 %% COMPUTE OR LOAD ICA
 
+% Add Matlab_analysis_neuroscience to path to be sure that we used the
+% correct runica function
+addpath(genpath(cnfg.neurotoolbox_path));
+
 % If there is already an ICA file in the outpath folder, load it.
 % This is for replicability, as the ICA matrix may be different.
 if exist([cnfg.outpath 'src_ica_flanker.mat'],'file')
@@ -136,6 +140,8 @@ end
 % If there is no ICA file, compute it using 'runica' and fieldtrip
 if ~isfield(cnfg,'ICname')
     disp('Computing ICA...')
+    % Fix random seed to obtain same ICA
+    rng(123)
     cfg = [];
     cfg.method = 'runica';   
     src_ica = ft_componentanalysis(cfg, ftdata);
