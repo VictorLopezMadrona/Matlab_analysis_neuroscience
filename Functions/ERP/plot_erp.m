@@ -22,7 +22,7 @@ function plot_erp(cnfg,ftdata)
 
 % Author: Victor Lopez Madrona <v.lopez.madrona@gmail.com>
 % License: BSD (3-clause)
-% Aug. 2021; Last revision: 27-Aug-2021
+% Aug. 2021; Last revision: 11-Mar-2025
 
 
 %% Initialization
@@ -34,7 +34,8 @@ if ~isfield(cnfg,'latency'), cnfg.latency=ftdata.time{1}([1 end]); end
 if ~isfield(cnfg,'channel')
     error('It is mandatory to select channels'), end
 if ~isfield(cnfg,'trigger')
-    error('It is mandatory to select trigggers'), end
+    cnfg.trigger = unique(ftdata.trialinfo); end
+    %error('It is mandatory to select trigggers'), end
 if ~isfield(cnfg,'outpath') && cnfg.dosave
     error('Outpath has not been specified to save the results'), end
 
@@ -87,7 +88,8 @@ for tr=1:length(cnfg.trigger)
         
         cfg=[];
         cfg.channel = iter;
-        cfg.color   = colors(tr,:);
+        color_tr = mod(tr-1,7)+1;
+        cfg.color   = colors(color_tr,:);
         plot_timelock_sem(cfg,timelock)
         
         %set(h,'UserData',iter);
@@ -111,6 +113,8 @@ for iter=1:length(cnfg.channel)
     G(iter).ButtonDownFcn = @newFigure1;
     hold off
 end
+% Maximize the figure window to fill the screen
+set(h, 'Units', 'normalized', 'OuterPosition', [0 0 1 1]);
 
 if cnfg.dosave
     savefig(h,[cnfg.outpath 'ERP_resp' cnfg.infosave])

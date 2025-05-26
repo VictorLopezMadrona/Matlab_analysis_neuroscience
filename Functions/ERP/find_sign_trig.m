@@ -34,6 +34,8 @@ function evok_resp=find_sign_trig(cnfg,ftdata)
 %       infosave          = string to include in the saved filed
 %
 %       plot_raster       = logical. Compute raster plot
+%
+%       plot_lfdr         = plot lfdr stats. Def=0
 % 
 %   ftdata - Data in format field trip
 %
@@ -61,6 +63,7 @@ if ~isfield(cnfg,'stats'), cnfg.stats='lfdr'; end %so far, only works with lfdr
 if ~isfield(cnfg,'dosave'), cnfg.dosave=false; end
 if ~isfield(cnfg,'latency'), cnfg.latency=[0 ftdata.time{1}(end)]; end
 if ~isfield(cnfg,'plotfig'), cnfg.plotfig=true; end
+if ~isfield(cnfg, 'plot_lfdr'), cnfg.plot_lfdr  = 0; end
 if ~isfield(cnfg,'outpath') && cnfg.dosave
     error('Outpath has not been specified to save the results')
 end
@@ -128,6 +131,7 @@ for ev=1:length(eventvalue)
     cfg.time            = ftdata.time;
     cfg.stats           = cnfg.stats;
     cfg.totalminsamples = cnfg.totalminsamples;
+    cfg.plot_lfdr       = cnfg.plot_lfdr;
     [signif_comp_idx, tt, t_signif, pval]=aw_signif_comps2(cfg, data_aw);
    
     if isempty(signif_comp_idx)

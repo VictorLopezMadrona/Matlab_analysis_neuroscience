@@ -43,6 +43,8 @@ function [varargout] = aw_signif_comps2(cnfg, AnyWaveData)
 %       stats             = string, if 'lfdr', find significant values
 %                           based on local false discovery rate. If not 
 %                           defined, the p-value would be 0.05. 
+%
+%       plot_lfdr         = plot lfdr stats. Def=0
 %                   
 %     AnyWaveData - cell of size {nb_comps x 1}. Each row is a component
 %                   of [nb_trials x samples].
@@ -92,6 +94,7 @@ end
 if ~isfield(cnfg, 'doplot') || isempty(cnfg.doplot )
     cnfg.doplot  = false;
 end
+if ~isfield(cnfg, 'plot_lfdr'), cnfg.plot_lfdr  = 0; end
 if ~isfield(cnfg, 'latency'), cnfg.latency = []; end
 if ~isempty(cnfg.latency)
     if ~isfield(cnfg, 'time') || isempty(cnfg.time)
@@ -134,7 +137,7 @@ if ~isfield(cnfg,'stats'), cnfg.stats='lfdr'; end
         % Compute the thresholds to apply on the t-values
         %[thr_low, thr_high] = dyn_lfdr(t_val, 0.4, 'Normal', cnfg.doplot);
         t_val_lfdr = [-t_val(:)' t_val(:)'];
-        [thr_low, thr_high] = dyn_lfdr(t_val_lfdr, 0.4, 'Normal', 0);
+        [thr_low, thr_high] = dyn_lfdr(t_val_lfdr, 0.4, 'Normal', cnfg.plot_lfdr);
         %[thr_low, thr_high] = lfdr(t_val, 0.4, 'Normal', cnfg.doplot);
         % Get the exterior points of the thresholds   <- .|.*.|. ->
         if strcmp(cnfg.stats,'lfdr')

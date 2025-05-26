@@ -1,0 +1,20 @@
+
+function ftdata = VBMEG2FT(filename)
+
+% Load a VBMEG file and convert it to FieldTrip 
+%
+% Victor J. Lopez-Madrona
+% 10/03/2025
+
+vbdata = load(filename);
+
+ftdata = [];
+%ftdata.hdr
+ftdata.label = vbdata.MEGinfo.ChannelInfo.Name;
+ftdata.trial{1} = vbdata.bexp;
+ftdata.fsample = vbdata.MEGinfo.SampleFreq;
+ftdata.time{1} = linspace()
+
+
+
+
