@@ -126,8 +126,7 @@ BAD_TRIAL = length(bad_trials_all); % <--- Number of bad trials
 
 %% COMPUTE OR LOAD ICA
 
-% Add Matlab_analysis_neuroscience to path to be sure that we used the
-% correct runica function
+% Add Matlab_analysis_neuro
 addpath(genpath(cnfg.neurotoolbox_path));
 
 % If there is already an ICA file in the outpath folder, load it.
@@ -140,13 +139,14 @@ end
 % If there is no ICA file, compute it using 'runica' and fieldtrip
 if ~isfield(cnfg,'ICname')
     disp('Computing ICA...')
+    
     % Fix random seed to obtain same ICA
     rng(123)
     cfg = [];
     cfg.method = 'runica';   
     src_ica = ft_componentanalysis(cfg, ftdata);
     %src_ica = ica_exp_var(src_ica,ftdata.trial{1});
-    
+     
     %%% Save ICA file
     src_ica.time = []; %Save space
     src_ica.trial = [];
@@ -226,10 +226,6 @@ end
 
 %% Select component with prefrontal topography
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% WHAT IF NO GOOD TOPO? %%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 % Only interested in Independent Components with a prefrontal topograhy:
 % i.e., the maximal values of the spatial distribution (mixing matrix)
 % should be in one of these channels:
@@ -256,6 +252,16 @@ for chi=1:size(ica_topo,2)
     end
 end
 
+%% If none of the components fits our criteria, the final result is 0
+if isempty(ICselect)
+    dERN=0;
+    dERN_0=0;
+    dERN_33=0;
+    dERN_66=0;
+    dERN_100=0;
+    ICoI=0;
+else
+    
 %% Compute ERP difference between conditions
 
 % Create new trials just correct vs incorrect
@@ -316,7 +322,16 @@ lag_dERN = samplewindow(1) + del_maxval(p) - 1; % <---- LAG
 
 % Difference of the ERP between two main conditions for selected IC:
 dERP = tl7.avg(p,:)-tl9.avg(p,:);
-dERN = abs(dERP(lag_dERN)); % <--- THIS IS THE FINAL RESULT
+
+% % OPT 1: select max of difference
+%dERN = abs(dERP(lag_dERN)); 
+
+% % OPT 2: mean from 0 to 100ms
+%dERN = abs(mean(dERP(samplewindow(1):samplewindow(2)))); 
+
+% OPT 3: from max point a time window +-25ms
+sample25ms = round(ftdataICA.fsample*0.025); % 25 miliseconds in samples
+dERN = abs(mean(dERP(lag_dERN-sample25ms:lag_dERN+sample25ms))); % <--- THIS IS THE FINAL RESULT
 
 % Compute dERN for each congruency
 cfg = [];
@@ -371,7 +386,7 @@ else
     dERP = tl7.avg-tl9.avg;
     dERN_100 = abs(dERP(lag_dERN)); % <--- THIS IS THE FINAL RESULT
 end
-
+end
 %% Save results:
 
 % dERN
@@ -382,7 +397,11 @@ dlmwrite([cnfg.outpath 'dERN.txt'], dERN_output, 'delimiter', '\n');
 clear summary_txt
 summary_txt{1} = ['Bad channels: ' BAD_CH{:}];
 summary_txt{2} = ['Number of trials removed: ' num2str(BAD_TRIAL)];
-summary_txt{3} = ['Selected Component: ' ftdataICA.label{ICoI}];
+if ICoI==0
+    summary_txt{3} = ['Selected Component: No component selected'];
+else
+    summary_txt{3} = ['Selected Component: ' ftdataICA.label{ICoI}];
+end
 fid = fopen([cnfg.outpath 'summary.txt'], 'w');
 for i = 1:length(summary_txt)
     fprintf(fid, '%s\n', summary_txt{i});
