@@ -52,7 +52,6 @@ if ~isfield(cnfg,'stats'), cnfg.stats = 'std'; end
 if ~isfield(cnfg,'alpha'), cnfg.alpha = 0.01; end
 alpha = norminv(1-cnfg.alpha);
 if ~isfield(cnfg,'baseline'), cnfg.baseline = 'all'; end
-if ~isfield(cnfg,'freqlim'), cnfg.freqlim = [0 ftdata.fsample/2]; end
 
 if ~isfield(cnfg,'infosave'), cnfg.infosave=''; end
 if ~isfield(cnfg,'dosave'), cnfg.dosave=false; end
@@ -81,6 +80,8 @@ if ~isstruct(ftdata)
     ftdata.label    = cnfg.label;
 end
 
+if ~isfield(cnfg,'freqlim'), cnfg.freqlim = [0 ftdata.fsample/2]; end
+
 if size(ftdata.trial{1},1) > 50
     warning('Too many signals. It may cause problems of memory') 
     warning('Try gabor_iter.m instead')
@@ -91,7 +92,6 @@ end
 % Parameters
 M = cnfg.M; %Time length
 a = cnfg.a; % I divide the Fs by this 'a' value
-time_trial = cnfg.time_trial;
 
 %%%% GABOR TRANSFORM %%%%
 disp('Computing GABOR Transform...')
@@ -130,29 +130,38 @@ end
 %    pow_corrected = pow_corrected(fini:fend,:,:);
 %end
 
-% Create trials from continuous GABOR. Here I need time_trial
-Ntrial = length(time_trial);
-Fs_gabor = round(ftdata.fsample/a);
-time_gabor = linspace(ftdata.time{1}(1),ftdata.time{1}(end),size(pow_corrected,2));
-% Find closest index and value for each y
-onset_samples = zeros(1,Ntrial);
-for tri = 1:Ntrial
-    [~, onset_samples(tri)] = min(abs(time_gabor - time_trial(tri)));  % index of minimum difference
+% If no trials (continuous data)
+if ~isfield(cnfg,'time_trial')
+    pow_mean = pow_corrected;
+
+else
+
+    % Create trials from continuous GABOR. Here I need time_trial
+    time_trial = cnfg.time_trial;
+    Ntrial = length(time_trial);
+    Fs_gabor = round(ftdata.fsample/a);
+    time_gabor = linspace(ftdata.time{1}(1),ftdata.time{1}(end),size(pow_corrected,2));
+    % Find closest index and value for each y
+    onset_samples = zeros(1,Ntrial);
+    for tri = 1:Ntrial
+        [~, onset_samples(tri)] = min(abs(time_gabor - time_trial(tri)));  % index of minimum difference
+    end
+    pre_samples   = round(cnfg.stimdef(1)*Fs_gabor); % Samples before onset in samples
+    post_samples  = round(cnfg.stimdef(2)*Fs_gabor); % Samples after onset in samples
+    % Define trials
+    trl_ini = onset_samples + pre_samples;  % Start sample
+    trl_end = onset_samples + post_samples; % End sample
+    pow_trial_zscore = [];
+    for tri=1:Ntrial
+        pow_trial_zscore(:,:,:,tri) = pow_corrected(:,trl_ini(tri):trl_end(tri),:);
+    end
+
+    pow_mean = mean(pow_trial_zscore,4);
 end
-pre_samples   = round(cnfg.stimdef(1)*Fs_gabor); % Samples before onset in samples
-post_samples  = round(cnfg.stimdef(2)*Fs_gabor); % Samples after onset in samples
-% Define trials
-trl_ini = onset_samples + pre_samples;  % Start sample
-trl_end = onset_samples + post_samples; % End sample
-pow_trial_zscore = [];
-for tri=1:Ntrial
-    pow_trial_zscore(:,:,:,tri) = pow_corrected(:,trl_ini(tri):trl_end(tri),:);
-end
 
-pow_mean = mean(pow_trial_zscore,4);
+%% PLOT results (only if trials)
 
-%% PLOT results
-
+if isfield(cnfg,'time_trial')
 if size(pow_mean,3)>50 
     warning('Too many signals. No plot not saving will be done')
     cnfg.dosave = false;
@@ -228,6 +237,7 @@ end
 %    save([cnfg.outpath 'NMFval' cnfg.infosave],'Wtf','H','F','tt','ff','label')
 %end
 
+end
 end
 
  function newFigure1(h1,~)
