@@ -192,7 +192,7 @@ end
 
 %% 4-ITPC and others
 
-if ~isfield(cnfg,'doitpc'), cnfg.signcmp=false; end
+if ~isfield(cnfg,'doitpc'), cnfg.doitpc=false; end
 if cnfg.doitpc
     eventvalue = unique(ftdataIC.trialinfo);
     for ev=1:length(eventvalue)
