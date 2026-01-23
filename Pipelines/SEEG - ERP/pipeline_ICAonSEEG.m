@@ -30,6 +30,7 @@ function pipeline_ICAonSEEG(subj_path,subj_file)
 % Nov. 2020; Last revision: 16-Jan-2026
 
 % Change log:
+% 2026-01-23: Remove time-course of ICs when saving ICA matrix
 % 2026-01-23: Added automatic plot of all ERPs (not just significant
 % 2026-01-16: Changed the used of loadSEEGdata for standard FieldTrip
 % functions
@@ -137,6 +138,8 @@ else
     ftdataIC=data2ICA(cfg,ftdataSEEG);
     
     if cnfg.dosave
+        src_ica_all.time = []; %Save memory
+        src_ica_all.trial = [];
         save([cnfg.outpath 'ICA' cnfg.infosave],'src_ica')
     end
 end  
