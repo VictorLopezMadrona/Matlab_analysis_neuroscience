@@ -149,7 +149,7 @@ cfg            = [];
 cfg.channel    = relevant_ch;
 cfg.dosave     = 1;
 cfg.outpath    = [cnfg.outpath 'Plot_ERP\'];
-cfg.plotfig    = 0;
+cfg.plotfig    = 1;
 cfg.trigger    = unique(ftdataIC.trialinfo);
 %cfg.infosave   = cnfg.infosave_cond1;
 plot_erp(cfg,ftdataIC)
