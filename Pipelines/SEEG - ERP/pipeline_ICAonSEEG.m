@@ -30,6 +30,7 @@ function pipeline_ICAonSEEG(subj_path,subj_file)
 % Nov. 2020; Last revision: 16-Jan-2026
 
 % Change log:
+% 2026-01-23: Added automatic plot of all ERPs (not just significant
 % 2026-01-16: Changed the used of loadSEEGdata for standard FieldTrip
 % functions
 
@@ -138,7 +139,20 @@ else
     if cnfg.dosave
         save([cnfg.outpath 'ICA' cnfg.infosave],'src_ica')
     end
-end    
+end  
+
+%% 2- Plot ERPs
+
+relevant_ch = 1:length(ftdataIC.label);
+
+cfg            = [];
+cfg.channel    = relevant_ch;
+cfg.dosave     = 1;
+cfg.outpath    = [cnfg.outpath 'Plot_ERP\'];
+cfg.plotfig    = 0;
+cfg.trigger    = unique(ftdataIC.trialinfo);
+%cfg.infosave   = cnfg.infosave_cond1;
+plot_erp(cfg,ftdataIC)
     
 %% 2- COMPONENTS WITH A SIGNIFICANT RESPONSE
 if ~isfield(cnfg,'signtrig'), cnfg.signtrig=false; end
