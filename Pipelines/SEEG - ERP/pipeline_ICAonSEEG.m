@@ -27,9 +27,10 @@ function pipeline_ICAonSEEG(subj_path,subj_file)
 
 % Author: Victor Lopez Madrona <v.lopez.madrona@gmail.com>
 % License: BSD (3-clause)
-% Nov. 2020; Last revision: 16-Jan-2026
+% Nov. 2020; Last revision: 27-Jan-2026
 
 % Change log:
+% 2026-01-27: Added baseline correction
 % 2026-01-23: Remove time-course of ICs when saving ICA matrix
 % 2026-01-23: Added automatic plot of all ERPs (not just significant
 % 2026-01-16: Changed the used of loadSEEGdata for standard FieldTrip
@@ -144,6 +145,27 @@ else
     end
 end  
 
+%% Retrieve "good" amplitude
+% % Multiply the ICA component by its max voltage loading. Like projecting
+% % the ICA back to the SEEG and selecting the one with maximal amplitude
+% 
+% amp = max(abs(src_ica.topo));
+% for trl = 1:size(ftdataIC.trial,2)
+%     ftdataIC.trial{trl} = ftdataIC.trial{trl} .* amp';
+% end
+
+%% Baseline correction
+% Substract baseline for each trial
+% All negative values are considered baseline (We can change this and add a
+% parameter).
+
+t1 = find(ftdataIC.time{1}<0,1);
+t2 = find(ftdataIC.time{1}>0,1);
+
+for trl = 1:size(ftdataIC.trial,2)
+    ftdataIC.trial{trl} = ftdataIC.trial{trl} - mean(ftdataIC.trial{trl}(:,t1:t2),2);
+end
+
 %% 2- Plot ERPs
 
 relevant_ch = 1:length(ftdataIC.label);
@@ -155,6 +177,7 @@ cfg.outpath    = [cnfg.outpath 'Plot_ERP\'];
 cfg.plotfig    = 1;
 cfg.trigger    = unique(ftdataIC.trialinfo);
 %cfg.infosave   = cnfg.infosave_cond1;
+cfg.ampyaxis   = 'individual';
 plot_erp(cfg,ftdataIC)
     
 %% 2- COMPONENTS WITH A SIGNIFICANT RESPONSE

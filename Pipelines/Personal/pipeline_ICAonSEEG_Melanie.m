@@ -1,13 +1,16 @@
 function pipeline_ICAonSEEG_Melanie(subj_path,subj_file)
 
-%% PIPELINE to analyze ICA on SEEG (auditory)
+%% PIPELINE to analyze ICA on SEEG (oldnew - oddball)
 % Given a patient folder, it reads all the parameters from a set_cnfg.m
 % file and analyzes the SEEG data, including:
 %   1- Computes ICA on SEEG data
-%   2- Triggers with a significant ERP
-%   3- Comparison between triggers
-%   4- ITPC
-%   5- Plot results
+%   2- Retrieve "good" amplitude
+%   3- Baseline correction
+%   4- Plot ERPs
+%   5- Triggers with a significant ERP
+%   6- Comparison between triggers
+%   7- ITPC
+%   8- Plot results
 % 
 % Syntax:  
 %    pipeline_ICAonSEEG(subj_path,subj_file);
@@ -30,6 +33,7 @@ function pipeline_ICAonSEEG_Melanie(subj_path,subj_file)
 % Nov. 2020; Last revision: 16-Jan-2026
 
 % Change log:
+% 2026-01-27: Baseline correction
 % 2026-01-27: Merge oddball and oldnew
 % 2026-01-23: Remove time-course of ICs when saving ICA matrix
 % 2026-01-23: Added automatic plot of all ERPs (not just significant
@@ -127,9 +131,9 @@ cfg.bpfreq = cnfg.bpfreq;
 cfg.bsfreq = [50 100];
 ftdataSEEG_cont = ft_preprocessing(cfg);
 ftdataSEEG_cont.label=correct_elec_names(ftdataSEEG_cont.label);
-% OLD-NEW TRIALS
+% ODDBALL TRIALS
 cfg=[];
-cfg.dataset = cnfg.datasetSEEG_on;
+cfg.dataset = cnfg.datasetSEEG_ob;
 cfg.trialdef.eventvalue = cnfg.eventvalueSEEG_ob;
 cfg.trialdef.eventtype = cnfg.eventtypeSEEG_ob; 
 cfg.trialdef.prestim    = cnfg.prestim; %in seconds
@@ -182,7 +186,28 @@ else
     end
 end  
 
-%% 2- Plot ERPs
+%% 2- Retrieve "good" amplitude
+% Multiply the ICA component by its max voltage loading. Like projecting
+% the ICA back to the SEEG and selecting the one with maximal amplitude
+
+amp = max(abs(src_ica.topo));
+for trl = 1:size(ftdataIC.trial,2)
+    ftdataIC.trial{trl} = ftdataIC.trial{trl} .* amp';
+end
+
+%% 3- Baseline correction
+% Substract baseline for each trial
+% All negative values are considered baseline (We can change this and add a
+% parameter).
+
+t1 = find(ftdataIC.time{1}<0,1);
+t2 = find(ftdataIC.time{1}>0,1);
+
+for trl = 1:size(ftdataIC.trial,2)
+    ftdataIC.trial{trl} = ftdataIC.trial{trl} - mean(ftdataIC.trial{trl}(:,t1:t2),2);
+end
+
+%% 4- Plot ERPs
 
 relevant_ch = 1:length(ftdataIC.label);
 
@@ -193,9 +218,10 @@ cfg.outpath    = [cnfg.outpath 'Plot_ERP\'];
 cfg.plotfig    = 1;
 cfg.trigger    = unique(ftdataIC.trialinfo);
 %cfg.infosave   = cnfg.infosave_cond1;
+cfg.ampyaxis   = 'individual';
 plot_erp(cfg,ftdataIC)
     
-%% 2- COMPONENTS WITH A SIGNIFICANT RESPONSE
+%% 5- COMPONENTS WITH A SIGNIFICANT RESPONSE
 if ~isfield(cnfg,'signtrig'), cnfg.signtrig=false; end
 if cnfg.signtrig
     disp('Analyzing significant components...')
@@ -221,7 +247,7 @@ if cnfg.signtrig
     disp(['Components responding to any all trigger: ' num2str(sigIC_all)])
 end
        
-%% 3- DIFFERENCES BETWEEN TRIGGERS
+%% 6- DIFFERENCES BETWEEN TRIGGERS
 if ~isfield(cnfg,'signcmp'), cnfg.signcmp=false; end
 if cnfg.signcmp
     disp('Analyzing differences between triggers.')
@@ -245,7 +271,7 @@ if cnfg.signcmp
     disp(['Components with differences between conditions: ' num2str(ICsig_cmp)])
 end
 
-%% 4-ITPC and others
+%% 7-ITPC and others
 
 if ~isfield(cnfg,'doitpc'), cnfg.doitpc=false; end
 if cnfg.doitpc
@@ -268,7 +294,7 @@ if cnfg.doitpc
     end
 end
 
-%% 5-Plot comparison ICA-SEEG
+%% 8-Plot comparison ICA-SEEG
 
 %PARAMETERS:
 resol_SEEG = 2; %distance between signals in units of standard deviation

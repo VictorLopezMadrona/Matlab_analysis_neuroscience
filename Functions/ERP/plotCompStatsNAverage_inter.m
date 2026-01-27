@@ -76,10 +76,12 @@ for i = 1:nb_comps
         % Define action on subplot click and disble content selection
         set(P,'UserData',i);
         set(P, 'HitTest', 'off'); % Disable content selection
+        set(gca, 'YDir','reverse'), % Inverse y axis (neg values on the top)
         G(i).ButtonDownFcn = @newFigure1; % Set click action
         %         plot(time1,MoyenneSurEpoques1(i,:),'r');
         hold on
         plot(time1,MoyenneSurEpoques1(i,:),'Color',color,'Linewidth',1);
+        plot(time1([1 end]),[0 0],'k')
         hold off;
     end
     title(ChannelsName1(i,1));
@@ -140,6 +142,7 @@ function newFigure1(h1,~)
             tmp = get(h1,'title'); tmp = tmp.String;
             % Set title to the new figure
             title(gca(F), tmp);
+            set(gca, 'YDir','reverse'), % Inverse y axis (neg values on the top)
             
         case 'alt'
             delete(h1);

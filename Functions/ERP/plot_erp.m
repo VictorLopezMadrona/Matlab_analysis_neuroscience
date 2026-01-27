@@ -15,6 +15,7 @@ function plot_erp(cnfg,ftdata)
 %       outpath  - string. Path to save the results if dosave=true
 %       plotfig  - logical. Plot the figure with the results.
 %       infosave - string to include in the saved filed
+%       ampyaxis - 'individual', 'group'. default='group'
 %
 %   ftdata - Data in format field trip
 %
@@ -23,6 +24,9 @@ function plot_erp(cnfg,ftdata)
 % Author: Victor Lopez Madrona <v.lopez.madrona@gmail.com>
 % License: BSD (3-clause)
 % Aug. 2021; Last revision: 11-Mar-2025
+
+% Change log
+% 27/01/26 - The figure when clicking has neg polarity on top of y axis
 
 
 %% Initialization
@@ -38,6 +42,8 @@ if ~isfield(cnfg,'trigger')
     %error('It is mandatory to select trigggers'), end
 if ~isfield(cnfg,'outpath') && cnfg.dosave
     error('Outpath has not been specified to save the results'), end
+if ~isfield(cnfg,'infosave'), cnfg.infosave=''; end
+if ~isfield(cnfg,'ampyaxis'), cnfg.ampyaxis='group'; end
 
 %% Main workflow
 
@@ -105,11 +111,13 @@ for iter=1:length(cnfg.channel)
     
     title(['ERP: ' ftdata.label{iter}]);
     plot(cnfg.latency,[0 0],'k')
-    axis([cnfg.latency min_val*1.2 max_val*1.2])
+    if strcmp(cnfg.ampyaxis,'group')
+        axis([cnfg.latency min_val*1.2 max_val*1.2])
+    end
     set(h,'UserData',iter);
     set(h,'HitTest', 'off'); % Disable content selection
     set(gca, 'YDir','reverse')
-    
+
     G(iter).ButtonDownFcn = @newFigure1;
     hold off
 end
@@ -146,6 +154,7 @@ switch get(gcf,'SelectionType')
         xlim(gca(F), tmp)
         tmp = get(h1,'YLim');
         ylim(gca(F), tmp)
+        set(gca, 'YDir','reverse')
     case 'alt'
         delete(h1);
 end
