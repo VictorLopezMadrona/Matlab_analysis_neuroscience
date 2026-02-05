@@ -30,6 +30,7 @@ function pipeline_ICAonSEEG(subj_path,subj_file)
 % Nov. 2020; Last revision: 27-Jan-2026
 
 % Change log:
+% 2026-02-05: Plot ICA topography with interactive display
 % 2026-01-27: Added baseline correction
 % 2026-01-23: Remove time-course of ICs when saving ICA matrix
 % 2026-01-23: Added automatic plot of all ERPs (not just significant
@@ -165,6 +166,38 @@ t2 = find(ftdataIC.time{1}>0,1);
 for trl = 1:size(ftdataIC.trial,2)
     ftdataIC.trial{trl} = ftdataIC.trial{trl} - mean(ftdataIC.trial{trl}(:,t1:t2),2);
 end
+
+%% Plot topography ICA-SEEG
+
+%if cnfg.doICA
+relevant_ch = 1:length(ftdataIC.label);
+
+h=figure;
+hold on,
+for i=1:length(relevant_ch)
+    ch = relevant_ch(i);
+    dispname = ftdataIC.label{ch};
+    plot(src_ica.topo(:,ch)./max(abs(src_ica.topo(:,ch))),'LineWidth',1.5,'DisplayName',dispname)
+end
+legend
+plot([0 length(src_ica.label)+1],[0 0],'k')
+axis([0 length(src_ica.label)+1 -1 1])
+ylabel('Weight')
+xlabel('Channels')
+yticks([-1 0 1])
+xticks(1:length(src_ica.label))
+xticklabels(ftdataSEEG.label)
+title('ICA topography')
+addCheckboxLegend(gca); 
+
+%if cnfg.dosave
+    savefig(h,[cnfg.outpath 'ICA_topo'])
+    saveas(h,[cnfg.outpath 'ICA_topo.png'])
+%end
+if ~cnfg.plotfig
+    close(h);
+end
+%end
 
 %% 2- Plot ERPs
 
