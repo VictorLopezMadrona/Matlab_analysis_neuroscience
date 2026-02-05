@@ -26,6 +26,7 @@ function plot_erp(cnfg,ftdata)
 % Aug. 2021; Last revision: 11-Mar-2025
 
 % Change log
+% 05/02/26 - Interactive display of conditions ERP
 % 27/01/26 - The figure when clicking has neg polarity on top of y axis
 
 
