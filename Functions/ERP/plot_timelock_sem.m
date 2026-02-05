@@ -15,9 +15,11 @@ function plot_timelock_sem(cnfg,timelock)
 % cfg.time; % If data in matrix form
 % cfg.sig_val; %a binary vector with significant time-points can be used to
 %              plot green squares of significance
+% cfg.displayname; string. if there is only one signal, add this displayname
 %
 
 % Log:
+% 05.02.2026: Added display_name
 % 20.02.2025: Added sig_val
 % 28.11.2024: Added default colors
 % 03.09.2024: Corrected an error when cfg.time was a column and not a row
@@ -79,7 +81,11 @@ inBetween = [curve1, fliplr(curve2)];
 hold on
 P = fill(ttime, inBetween, color,'LineStyle','none');
 alpha(P,0.5)
-plot(timey,MU,'Color',color,'Linewidth',1);
+if isfield(cnfg,'displayname')
+    plot(timey,MU,'Color',color,'Linewidth',1,'DisplayName',cnfg.displayname);
+else
+    plot(timey,MU,'Color',color,'Linewidth',1);
+end
 hold off        
 
 %%% Plot significance

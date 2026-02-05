@@ -96,6 +96,7 @@ for tr=1:length(cnfg.trigger)
         cfg.channel = iter;
         color_tr = mod(tr-1,7)+1;
         cfg.color   = colors(color_tr,:);
+        cfg.displayname = ['Cond ' num2str(cnfg.trigger(tr))];
         plot_timelock_sem(cfg,timelock)
         
         %set(h,'UserData',iter);
@@ -155,6 +156,57 @@ switch get(gcf,'SelectionType')
         tmp = get(h1,'YLim');
         ylim(gca(F), tmp)
         set(gca, 'YDir','reverse')
+    
+% ---------- Setup ----------
+F = gcf;  % your existing figure
+
+% Get an axes (avoid legend axes if present)
+ax = findobj(F,'Type','axes','-not','Tag','legend');
+ax = ax(1);
+
+% Children in creation order (oldest -> newest)
+ch = flipud(ax.Children);
+
+% Robust filtering by class (no .Type access)
+isLine  = arrayfun(@(h) isa(h,'matlab.graphics.chart.primitive.Line'), ch);
+isPatch = arrayfun(@(h) isa(h,'matlab.graphics.primitive.Patch'), ch);
+
+lines   = ch(isLine);
+patches = ch(isPatch);
+
+% Expect: i+1 lines and i patches (baseline is last line)
+if numel(lines) ~= numel(patches)+1
+    error('Expected (#lines) = (#patches)+1, but got %d lines and %d patches.', numel(lines), numel(patches));
+end
+
+condLines   = lines(1:end-1);  % exclude baseline (last line)
+condPatches = patches;         % i patches
+
+% ---------- Copy DisplayName from each line to its associated patch ----------
+names = get(condLines, 'DisplayName');
+if ischar(names), names = {names}; end  % MATLAB quirk when N=1
+
+for k = 1:numel(condPatches)
+    % Patch supports DisplayName, but keep it safe:
+    if isprop(condPatches(k),'DisplayName')
+        condPatches(k).DisplayName = names{k};
+    end
+end
+
+% ---------- Build checkbox legend (one entry per condition, using lines) ----------
+isOn = arrayfun(@(h) isprop(h,'Visible') && strcmp(h.Visible,'on'), condLines);
+labels = addCheckboxes(names, isOn);
+
+lgd = legend(ax, condLines, labels, 'Interpreter','none', 'Location','eastoutside');
+
+% Store pairing so clicking a legend entry toggles BOTH line + patch
+lgd.UserData.condLines   = condLines;
+lgd.UserData.condPatches = condPatches;
+lgd.UserData.names       = names;
+lgd.UserData.isOn        = isOn;
+
+lgd.ItemHitFcn = @(src,evt) togglePairAndUpdateLegend(src, evt);
+
     case 'alt'
         delete(h1);
 end
@@ -169,3 +221,35 @@ function timelock=baselinecorrection(timelock)
     end
 end
 
+% ---------- helper functions ----------
+function out = addCheckboxes(baseLabels, isOn)
+    out = baseLabels;
+    for k = 1:numel(baseLabels)
+        out{k} = [char(ternary(isOn(k), '☑', '☐')) ' ' baseLabels{k}];
+    end
+end
+
+function togglePairAndUpdateLegend(lgd, evt)
+    L = lgd.UserData.condLines;
+    P = lgd.UserData.condPatches;
+
+    % Legend peers should be the line handles
+    idx = find(L == evt.Peer, 1, 'first');
+    if isempty(idx), return; end
+
+    % Toggle state based on line visibility
+    currentlyOn = isprop(L(idx),'Visible') && strcmp(L(idx).Visible,'on');
+    newState = ~currentlyOn;
+
+    % Apply to both the line and its paired patch
+    if isprop(L(idx),'Visible'), L(idx).Visible = ternary(newState,'on','off'); end
+    if isprop(P(idx),'Visible'), P(idx).Visible = ternary(newState,'on','off'); end
+
+    % Update legend strings (checkboxes)
+    lgd.UserData.isOn(idx) = newState;
+    lgd.String = addCheckboxes(lgd.UserData.names, lgd.UserData.isOn);
+end
+
+function out = ternary(cond, a, b)
+    if cond, out = a; else, out = b; end
+end
