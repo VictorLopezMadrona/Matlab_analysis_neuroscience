@@ -64,7 +64,7 @@ qs = [quantile(xi,1/4) - K*iqr(xi); K*iqr(xi) + quantile(xi,3/4)];% Inf*[-1 1];
 N_smooth = 3;
 
 if doplot
-    figure;
+    %figure;
     h = histogram(xi);
 else
     % Equivalent computation without the plot    

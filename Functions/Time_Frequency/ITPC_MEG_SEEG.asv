@@ -106,14 +106,18 @@ m = ismember({'TF', 'ITPC', 'ITLC', 'ISPC', 'ISLC'}, cnfg.metric);
 if sum(m)==0
     error('No metrics have been selected.'); end
 
+if ~isfield(cnfg,'cont_data'), cnfg.cont_data=0; end
+
 if nargin == 2 %Not MEG-SEEG mix
-    if isfield(cnfg,'trigger')
-    trials = find(ismember(dataMEG.trialinfo,cnfg.trigger));
-    cfg = [];
-    cfg.channel = cnfg.channel;
-    if ~isfield(cnfg,'trl')
-        cfg.trials = trials; end
-    dataMEG = ft_selectdata(cfg,dataMEG);
+    if ~cnfg.cont_data
+        if isfield(cnfg,'trigger')
+            trials = find(ismember(dataMEG.trialinfo,cnfg.trigger));
+            cfg = [];
+            cfg.channel = cnfg.channel;
+            if ~isfield(cnfg,'trl')
+                cfg.trials = trials; end
+            dataMEG = ft_selectdata(cfg,dataMEG);
+        end
     end
     dataMIX = dataMEG;
     
@@ -139,7 +143,7 @@ end
 if ~strcmp(cnfg.stats,'surro')
     cnfg.Nsurro=0;
 end
-if ~isfield(cnfg,'cont_data'), cnfg.cont_data=0; end
+
 
 %% Compute original ITC
 
@@ -148,13 +152,20 @@ cfg        = [];
 cfg.method = 'wavelet';
 cfg.output = 'fourier';
 cfg.foilim = cnfg.foilim;
-if isfield(cnfg,'trl') %cont data
-    cfg.toi    = dataMIX.time{1};
+% if isfield(cnfg,'trl') %cont data
+%     cfg.toi    = dataMIX.time{1};
+% else
+%     cfg.toi    = cnfg.toi; %trial data
+% end
+if cnfg.cont_data %cont data
+    cfg.toi    = dataMIX.time{1}(1) : cnfg.t_step : dataMIX.time{1}(end);
 else
     cfg.toi    = cnfg.toi; %trial data
 end
 cfg.pad='nextpow2';
+tic
 freq       = ft_freqanalysis(cfg, dataMIX);
+toc
 freq.fourierspctrm(isnan(freq.fourierspctrm))=0;
 if isfield(cnfg,'trl') %cont data
     freq = create_trials(freq,cnfg); % I need to finish this
@@ -373,7 +384,7 @@ if isfield(itc,'itpc')
         itpc_diff(:,:,t) = (itc.itpc(:,:,t) - MU_itpc);
     end
     
-    % Pvalues using Rayleigh’s Z (Cohen 2014)
+    % Pvalues using Rayleighâ€™s Z (Cohen 2014)
     itc.itpc_pval=exp(-N*itpc_diff.^2);
     mask_itpc = itc.itpc_pval<=cnfg.pval & itpc_diff>0;
     itc.itpc_sig = itc.itpc.*mask_itpc;
