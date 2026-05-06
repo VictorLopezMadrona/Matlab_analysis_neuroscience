@@ -23,9 +23,10 @@ function plot_erp(cnfg,ftdata)
 
 % Author: Victor Lopez Madrona <v.lopez.madrona@gmail.com>
 % License: BSD (3-clause)
-% Aug. 2021; Last revision: 11-Mar-2025
+% Aug. 2021; Last revision: 06-Mai-2026
 
 % Change log
+% 06/05/26 - Save ERP data as well
 % 05/02/26 - Interactive display of conditions ERP
 % 27/01/26 - The figure when clicking has neg polarity on top of y axis
 
@@ -71,6 +72,7 @@ colors = [0         0.4470    0.7410;...
 
 max_val = 0;
 min_val = 0;
+data_erp = cell(1,length(cnfg.trigger));
 for tr=1:length(cnfg.trigger)
     
     cfg=[];
@@ -105,6 +107,11 @@ for tr=1:length(cnfg.trigger)
         %G(iter).ButtonDownFcn = @newFigure1;
         hold off
     end
+
+    data_erp{tr}.data = squeeze(mean(squeeze(timelock.trial)));
+    data_erp{tr}.time = timelock.time; 
+    data_erp{tr}.trigger = cnfg.trigger(tr);
+    data_erp{tr}.label = timelock.label;
 end
 
 for iter=1:length(cnfg.channel)
@@ -129,6 +136,7 @@ set(h, 'Units', 'normalized', 'OuterPosition', [0 0 1 1]);
 if cnfg.dosave
     savefig(h,[cnfg.outpath 'ERP_resp' cnfg.infosave])
     saveas(h,[cnfg.outpath 'ERP_resp' cnfg.infosave '.png'])
+    save([cnfg.outpath 'data_ERP_' cnfg.infosave],'data_erp')
 end
 if ~cnfg.plotfig
     close(h)
