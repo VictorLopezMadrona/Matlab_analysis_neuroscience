@@ -26,7 +26,7 @@ function plot_erp(cnfg,ftdata)
 % Aug. 2021; Last revision: 06-Mai-2026
 
 % Change log
-% 06/05/26 - Save ERP data as well
+% 06/05/26 - Save ERP data as well. Compute signal and noise
 % 05/02/26 - Interactive display of conditions ERP
 % 27/01/26 - The figure when clicking has neg polarity on top of y axis
 
@@ -112,6 +112,17 @@ for tr=1:length(cnfg.trigger)
     data_erp{tr}.time = timelock.time; 
     data_erp{tr}.trigger = cnfg.trigger(tr);
     data_erp{tr}.label = timelock.label;
+
+    % Obtain SNR of each response. The noise is the std of the baseline.
+    % The signal is the max amplitude
+    % Duration of the baseline
+    tini = 1;
+    tend = find(data_erp{tr}.time>=0,1);
+    if tend>tini
+        data_erp{tr}.noise = std(data_erp{tr}.data(:,tini:tend),0,2);
+        data_erp{tr}.signal = max(abs(data_erp{tr}.data(:,tend:end)),[],2);
+        data_erp{tr}.SNR = data_erp{tr}.signal./data_erp{tr}.noise;
+    end
 end
 
 for iter=1:length(cnfg.channel)
