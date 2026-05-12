@@ -50,6 +50,17 @@ if nargin == 1, subj_file = 'set_cnfg_ICAonSEEG'; end
 cd(subj_path) % Go to patient's folder
 eval(subj_file) % Load configuration file
 
+if isfield(cnfg,'mono')
+    if cnfg.mono
+        cnfg.computeICA = 0;
+        if ~isfield(cnfg,'infosave') 
+            cnfg.infosave = '_mono';
+        else
+            cnfg.infosave = [cnfg.infosave '_mono'];
+        end
+    end
+end
+
 % Define outpath
 if ~isfield(cnfg,'outpath')
     cnfg.outpath = [pwd '\Results_ICAonSEEG\'];
