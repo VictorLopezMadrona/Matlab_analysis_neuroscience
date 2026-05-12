@@ -51,14 +51,9 @@ cd(subj_path) % Go to patient's folder
 eval(subj_file) % Load configuration file
 
 if isfield(cnfg,'mono')
-    if cnfg.mono
-        cnfg.computeICA = 0;
-        if ~isfield(cnfg,'infosave') 
-            cnfg.infosave = '_mono';
-        else
-            cnfg.infosave = [cnfg.infosave '_mono'];
-        end
-    end
+    if cnfg.mono, cnfg.computeICA = 0; end
+else
+    cnfg.mono = false;
 end
 
 % Define outpath
@@ -67,6 +62,9 @@ if ~isfield(cnfg,'outpath')
 end
 if ~strcmp(cnfg.outpath(end),'\')
     cnfg.outpath = [cnfg.outpath '\'];
+end
+if cnfg.mono
+    cnfg.outpath = [cnfg.outpath(1:end-1) '_mono\'];
 end
 if ~exist(cnfg.outpath,'dir'), mkdir(cnfg.outpath); end
 if ~isfield(cnfg,'infosave'), cnfg.infosave = ''; end
@@ -185,6 +183,8 @@ if isfield(cnfg,'ICname')
     cfg.ICname = cnfg.ICname;
     ftdataIC=data2ICA(cfg,ftdataSEEG);
     load([cnfg.outpath 'ICA' cnfg.infosave '.mat'])
+elseif cnfg.mono
+    ftdataIC = ftdataSEEG;
 else
     cfg=[];
     cfg.src_ica = src_ica;
@@ -201,9 +201,11 @@ end
 % Multiply the ICA component by its max voltage loading. Like projecting
 % the ICA back to the SEEG and selecting the one with maximal amplitude
 
-amp = max(abs(src_ica.topo));
-for trl = 1:size(ftdataIC.trial,2)
-    ftdataIC.trial{trl} = ftdataIC.trial{trl} .* amp';
+if cnfg.mono == false
+    amp = max(abs(src_ica.topo));
+    for trl = 1:size(ftdataIC.trial,2)
+        ftdataIC.trial{trl} = ftdataIC.trial{trl} .* amp';
+    end
 end
 
 %% 3- Baseline correction
@@ -220,6 +222,7 @@ end
 
 %% 3b- Plot topography ICA-SEEG
 
+if cnfg.mono == false
 %if cnfg.doICA
 relevant_ch = 1:length(ftdataIC.label);
 
@@ -249,6 +252,7 @@ if ~cnfg.plotfig
     close(h);
 end
 %end
+end
 
 %% 4- Plot ERPs
 
@@ -339,6 +343,7 @@ end
 
 %% 8-Plot comparison ICA-SEEG
 
+if cnfg.mono == false
 %PARAMETERS:
 resol_SEEG = 2; %distance between signals in units of standard deviation
 resol_IC   = 4;
@@ -433,7 +438,7 @@ if ~cnfg.plotfig
     close(F)
 end
 
-
+end
 
 
 
