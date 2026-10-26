@@ -49,9 +49,10 @@ function comodulogram=computeCFC(cnfg,data_phase,data_amplitude)
 % Dec. 2016; Last revision: 21-Apr-2025
 
 % Change log:
+% 26/10/2026: If too close to Nyquist freq, do not high-pass filter
 % 21/04/2025: Option to estimate phase using cycle-by-cycle metrics
 % 24/06/2024: Low-pass and high-pass filter instead of bandpass
-% 16/8/2021: Updated to enter the parameters in a cfg struct
+% 16/8/2021:  Updated to enter the parameters in a cfg struct
 
 %% Initial parameters. 
 
@@ -121,7 +122,13 @@ tic
     y_min=y_gamma(y)-BW_gamma/2;
     y_max=y_gamma(y)+BW_gamma/2;
     data_gamma=eegfilt(data_amplitude,Fs,y_min,0);
-    data_gamma=eegfilt(data_gamma,Fs,0,y_max);
+
+    % If too close to Nyquist freq, do not high-pass filter
+    trans = 0.15;
+    if (1+trans)*y_max/(Fs/2) < 1
+        data_gamma=eegfilt(data_gamma,Fs,0,y_max);
+    end
+
     x_phase = angle(hilbert(data_theta));
     modulation_index(x_phase,data_gamma,bins);
     if Nsurro > 0
@@ -147,7 +154,12 @@ for x=1:lx
         y_min=y_gamma(y)-BW_gamma/2;
         y_max=y_gamma(y)+BW_gamma/2;
         data_gamma=eegfilt(data_amplitude,Fs,y_min,0);
-        data_gamma=eegfilt(data_gamma,Fs,0,y_max);
+        
+        % If too close to Nyquist freq, do not high-pass filter
+        trans = 0.15;
+        if (1+trans)*y_max/(Fs/2) < 1
+            data_gamma=eegfilt(data_gamma,Fs,0,y_max);
+        end
         
         %Compute phase. Other methods can be applyed here:
         if cyclebycle
